@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Support\Audit;
+use App\Support\Emplacements;
+use App\Support\Perimetre;
 use App\Support\Stock;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,11 +21,12 @@ class KitAssembleController extends Controller
     {
         $filtres = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-            'statut' => ['nullable', 'in:assemble,desassemble,expedie'],
+            'statut' => ['nullable', 'in:assemble,desassemble,expedie,en_transit'],
         ]);
 
         return Inertia::render('Stock/Kits/Index', [
-            'kits' => $this->requete()
+            'imprimantes' => ReceptionController::imprimantes(),
+            'kits' => $this->requete()->tap(fn ($q) => Perimetre::filtrer($q, 'site.id'))
                 ->when($filtres['q'] ?? null, fn ($q, $t) => $q->where(fn ($w) => $w
                     ->where('kit_assemble.uid', strtoupper($t))->orWhere('kit_assemble.numero_serie', 'ilike', "%{$t}%")
                     ->orWhere('type_kit.reference', 'ilike', "%{$t}%")))
@@ -35,10 +38,14 @@ class KitAssembleController extends Controller
 
     public function show(int $kit): Response
     {
+        abort_unless(Perimetre::couvre('kit_assemble', $kit), 403, 'Ce kit n’est pas dans le stock de votre site.');
         $k = $this->requete()->where('kit_assemble.id', $kit)->first() ?? abort(404);
 
         return Inertia::render('Stock/Kits/Fiche', [
             'kit' => $k,
+            'emplacement' => EmplacementController::libelle($k->emplacement_id),
+            'emplacements' => Emplacements::liste(),
+            'historique' => EmplacementController::historique('kit_id', $kit),
             'contenu' => DB::table('contenu_kit')->join('unite_article', 'unite_article.id', '=', 'contenu_kit.unite_id')
                 ->join('article', 'article.id', '=', 'unite_article.article_id')
                 ->where('kit_id', $kit)->orderBy('article.reference')
@@ -51,6 +58,7 @@ class KitAssembleController extends Controller
     public function desassembler(Request $request, int $kit): RedirectResponse
     {
         $motif = $request->validate(['motif' => ['required', 'string', 'min:5', 'max:500']])['motif'];
+        Perimetre::exiger('kit_assemble', $kit);
 
         DB::transaction(function () use ($request, $kit, $motif) {
             $k = DB::table('kit_assemble')->where('id', $kit)->lockForUpdate()->first() ?? abort(404);
@@ -60,7 +68,7 @@ class KitAssembleController extends Controller
             $userId = $request->user()->id;
 
             DB::table('kit_assemble')->where('id', $kit)->update([
-                'statut' => 'desassemble', 'desassemble_le' => now(), 'motif_desassemblage' => $motif, 'updated_at' => now(),
+                'statut' => 'desassemble', 'desassemble_le' => now(), 'motif_desassemblage' => $motif, 'emplacement_id' => null, 'updated_at' => now(),
             ]);
 
             foreach (DB::table('contenu_kit')->where('kit_id', $kit)->get() as $ligne) {
@@ -68,6 +76,14 @@ class KitAssembleController extends Controller
                 // Les composants reviennent en stock ; un lot épuisé redevient « En stock ».
                 $retour = $u->nature === 'serie' ? ['statut' => 'en_stock'] : ($u->statut === 'epuise' ? ['statut' => 'en_stock'] : []);
                 Stock::mouvementUnite($u, 'restitution', (int) $ligne->quantite, $userId, "Désassemblage du kit {$kit} : {$motif}", $retour);
+                if ($u->nature === 'serie') {
+                    // Le composant reprend l'emplacement du kit (et son état si le kit est défectueux).
+                    DB::table('unite_article')->where('id', $u->id)->update([
+                        'emplacement_id' => $k->emplacement_id, 'proprietaire' => $k->proprietaire,
+                        'etat' => $k->etat === 'defectueux' ? 'defectueux' : $u->etat,
+                    ]);
+                    Emplacements::tracer('affectation', 'unite_id', $u->id, null, $k->emplacement_id, $userId, "Désassemblage du kit {$kit}");
+                }
             }
 
             Audit::enregistrer('desassembler', 'kit_assemble', ['id' => $kit, 'statut' => 'assemble'], ['id' => $kit, 'statut' => 'desassemble', 'motif' => $motif]);
@@ -82,6 +98,8 @@ class KitAssembleController extends Controller
             ->join('version_kit', 'version_kit.id', '=', 'kit_assemble.version_kit_id')
             ->join('type_kit', 'type_kit.id', '=', 'version_kit.type_kit_id')
             ->leftJoin('users', 'users.id', '=', 'kit_assemble.utilisateur_id')
-            ->select('kit_assemble.*', 'type_kit.reference', 'type_kit.nom', 'type_kit.partno', 'version_kit.numero as version', 'users.name as assembleur');
+            ->leftJoin('emplacement', 'emplacement.id', '=', 'kit_assemble.emplacement_id')->leftJoin('site', 'site.id', '=', 'emplacement.site_id')
+            ->select('kit_assemble.*', 'type_kit.reference', 'type_kit.nom', 'type_kit.partno', 'version_kit.numero as version', 'users.name as assembleur',
+                DB::raw("concat_ws(' › ', site.nom, emplacement.nom) as emplacement_libelle"));
     }
 }

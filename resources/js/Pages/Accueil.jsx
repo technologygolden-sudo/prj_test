@@ -1,6 +1,15 @@
 import { Link } from '@inertiajs/react';
 import AppLayout from '../Layouts/AppLayout';
-import { usePeut } from '../Components/ui';
+import { Bouton, usePeut } from '../Components/ui';
+
+const raccourcis = [
+    { libelle: 'Nouveau type de kit', href: '/kits/nouveau', permission: 'kits.gerer' },
+    { libelle: 'Assembler un kit', href: '/assemblage', permission: 'assemblage.realiser' },
+    { libelle: 'Nouvelle réception', href: '/receptions/nouvelle', permission: 'reception.creer' },
+    { libelle: 'Nouveau transfert', href: '/transferts/nouveau', permission: 'transferts.envoyer' },
+    { libelle: 'Remise à un technicien', href: '/sorties/nouvelle', permission: 'stock.sortir' },
+    { libelle: 'Stock par site', href: '/stock?vue=sites', permission: 'articles.voir' },
+];
 
 export default function Accueil({ compteurs }) {
     const peut = usePeut();
@@ -11,11 +20,23 @@ export default function Accueil({ compteurs }) {
         { libelle: 'Unités en stock', valeur: compteurs.unites_en_stock, href: '/stock', permission: 'articles.voir' },
         { libelle: 'Kits assemblés en stock', valeur: compteurs.kits_assembles, href: '/kits-assembles', permission: 'articles.voir' },
         { libelle: 'Étiquettes à imprimer', valeur: compteurs.a_imprimer, href: '/stock', permission: 'articles.voir' },
+        { libelle: 'Transferts en transit', valeur: compteurs.transferts_en_transit, href: '/transferts?statut=en_transit', permission: ['transferts.envoyer', 'transferts.recevoir'] },
+        { libelle: 'Éléments défectueux', valeur: compteurs.defectueux, href: '/stock?etat=defectueux', permission: 'articles.voir' },
     ];
+    const actions = raccourcis.filter((r) => peut(r.permission));
 
     return (
         <AppLayout titre="Accueil">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {actions.length > 0 && (
+                <div className="mb-6 flex flex-wrap gap-2">
+                    {actions.map((r) => (
+                        <Bouton key={r.href} href={r.href} variante="secondaire">
+                            {r.libelle}
+                        </Bouton>
+                    ))}
+                </div>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {tuiles.map((t) => {
                     const contenu = (
                         <>

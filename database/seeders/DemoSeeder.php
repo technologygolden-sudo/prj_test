@@ -19,6 +19,9 @@ use RuntimeException;
  *   magasin.demo Réceptionnaire
  *   atelier.demo Assembleur
  *   planif.demo  Planificateur
+ *   lab.demo     Technicien Lab
+ *   sav.demo     Agent SAV
+ *   centre.demo  Shop manager du centre de Divo
  */
 class DemoSeeder extends Seeder
 {
@@ -39,6 +42,9 @@ class DemoSeeder extends Seeder
             'magasin.demo' => ['Magasin Démo', 'Réceptionnaire'],
             'atelier.demo' => ['Atelier Démo', 'Assembleur'],
             'planif.demo' => ['Planif Démo', 'Planificateur'],
+            'lab.demo' => ['Lab Démo', 'Technicien Lab'],
+            'sav.demo' => ['SAV Démo', 'Agent SAV'],
+            'centre.demo' => ['Shop Divo Démo', 'Shop manager'],
         ] as $login => [$nom, $role]) {
             $user = User::firstOrCreate(
                 ['login' => $login],
@@ -46,6 +52,8 @@ class DemoSeeder extends Seeder
             );
             $user->syncRoles([$role]);
         }
+        // Le shop manager de démonstration gère le centre de service de Divo (RG33).
+        User::where('login', 'centre.demo')->update(['site_id' => DB::table('site')->where('code', 'CS-DIVO')->value('id')]);
 
         // Imprimantes de démonstration : ZPL écrit dans storage/app/impressions, PDF dans le navigateur.
         foreach ([
@@ -89,11 +97,14 @@ class DemoSeeder extends Seeder
         $reception = DB::table('reception')->insertGetId([
             'date' => now()->toDateString(), 'num_bl' => 'BL-DEMO-001', 'fournisseur' => 'Fournisseur démo', 'utilisateur_id' => $admin,
         ]);
-        $entree = function (int $articleId, ?string $serie, int $quantite) use ($reception, $admin) {
+        $entrepot = DB::table('emplacement')->join('site', 'site.id', '=', 'emplacement.site_id')
+            ->where(['site.code' => SiteSeeder::ENTREPOT, 'emplacement.espace' => 'GREENO', 'emplacement.type' => 'entrepot'])->value('emplacement.id');
+        DB::table('reception')->where('id', $reception)->update(['espace' => 'GREENO']);
+        $entree = function (int $articleId, ?string $serie, int $quantite) use ($reception, $admin, $entrepot) {
             $id = DB::table('unite_article')->insertGetId([
                 'uid' => Uid::generer($serie ? Uid::ARTICLE : Uid::LOT), 'nature' => $serie ? 'serie' : 'lot', 'numero_serie' => $serie,
                 'quantite_initiale' => $quantite, 'quantite_restante' => $quantite, 'statut' => 'en_stock',
-                'article_id' => $articleId, 'reception_id' => $reception,
+                'article_id' => $articleId, 'reception_id' => $reception, 'proprietaire' => 'GREENO', 'emplacement_id' => $entrepot,
             ]);
             DB::table('mouvement_stock')->insert([
                 'type' => 'entree', 'quantite' => $quantite, 'unite_id' => $id, 'reception_id' => $reception, 'utilisateur_id' => $admin,

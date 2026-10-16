@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Support\Audit;
+use App\Support\Emplacements;
 use App\Support\Stock;
 use App\Support\Uid;
 use Illuminate\Http\RedirectResponse;
@@ -44,6 +45,7 @@ class ReceptionController extends Controller
             'num_bl' => ['required', 'string', 'max:64'],
             'fournisseur' => ['required', 'string', 'max:255'],
             'emplacement' => ['nullable', 'string', 'max:64'],
+            'espace' => ['required', 'in:GREENO,TEVIA'],
             'lignes' => ['required', 'array', 'min:1', 'max:200'],
             'lignes.*.article_id' => ['required', 'integer', Rule::exists('article', 'id')],
             'lignes.*.quantite' => ['required', 'integer', 'min:1', 'max:100000'],
@@ -83,10 +85,18 @@ class ReceptionController extends Controller
             throw ValidationException::withMessages($erreurs);
         }
 
-        $receptionId = DB::transaction(function () use ($donnees, $articles, $request) {
+        // Tout article arrive d'abord dans la Réception de l'espace propriétaire, à l'entrepôt.
+        $reception = DB::table('emplacement')->join('site', 'site.id', '=', 'emplacement.site_id')
+            ->where(['site.type' => 'entrepot', 'emplacement.type' => 'reception', 'emplacement.espace' => $donnees['espace'], 'emplacement.actif' => true])
+            ->value('emplacement.id');
+        if (! $reception) {
+            throw ValidationException::withMessages(['espace' => "Aucun emplacement Réception actif pour l'espace {$donnees['espace']}."]);
+        }
+
+        $receptionId = DB::transaction(function () use ($donnees, $articles, $request, $reception) {
             $userId = $request->user()->id;
             $receptionId = DB::table('reception')->insertGetId([
-                'date' => $donnees['date'], 'num_bl' => $donnees['num_bl'], 'fournisseur' => $donnees['fournisseur'],
+                'date' => $donnees['date'], 'num_bl' => $donnees['num_bl'], 'fournisseur' => $donnees['fournisseur'], 'espace' => $donnees['espace'],
                 'utilisateur_id' => $userId, 'created_at' => now(), 'updated_at' => now(),
             ]);
 
@@ -101,9 +111,11 @@ class ReceptionController extends Controller
                         'uid' => Uid::generer($u['prefixe']), 'nature' => $u['nature'], 'numero_serie' => $u['numero_serie'],
                         'quantite_initiale' => $u['quantite'], 'quantite_restante' => 0, 'statut' => 'en_stock',
                         'emplacement' => $donnees['emplacement'] ?? null, 'article_id' => $article->id, 'reception_id' => $receptionId,
+                        'proprietaire' => $donnees['espace'], 'emplacement_id' => $reception,
                         'created_at' => now(), 'updated_at' => now(),
                     ]);
                     Stock::mouvementUnite(Stock::verrouillerUnite($id), 'entree', $u['quantite'], $userId, null, ['reception_id' => $receptionId]);
+                    Emplacements::tracer('affectation', 'unite_id', $id, null, $reception, $userId, "Réception BL {$donnees['num_bl']}");
                 }
             }
 

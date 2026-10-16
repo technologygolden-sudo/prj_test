@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(PermissionSeeder::class);
+        $this->call([PermissionSeeder::class, SiteSeeder::class, CategorieSeeder::class]);
 
         // RG15 : valeurs initiales, modifiables ensuite par l'administrateur uniquement.
         DB::table('parametre_societe')->insertOrIgnore([

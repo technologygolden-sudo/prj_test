@@ -2,6 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import AppLayout from '../../../Layouts/AppLayout';
 import PanneauImpression from '../../../Components/PanneauImpression';
 import { Impressions } from '../../../Components/Historique';
+import ActionsElement from '../../../Components/ActionsElement';
 import { Bouton, Carte, Champ, Saisie, Statut, Tableau, dateFr, usePeut } from '../../../Components/ui';
 
 function Desassemblage({ kit }) {
@@ -26,7 +27,7 @@ function Desassemblage({ kit }) {
     );
 }
 
-export default function Fiche({ kit, contenu, impressions, imprimantes }) {
+export default function Fiche({ kit, contenu, impressions, imprimantes, emplacement, emplacements, historique }) {
     const peut = usePeut();
 
     return (
@@ -50,6 +51,7 @@ export default function Fiche({ kit, contenu, impressions, imprimantes }) {
                         ))}
                     </dl>
                 </Carte>
+                <ActionsElement type="kit" element={kit} emplacement={emplacement} emplacements={emplacements} historique={historique} disponible={kit.statut === 'assemble'} />
                 {kit.statut === 'assemble' && (
                     <Carte titre="Étiquette du kit">
                         <PanneauImpression cibles={[{ type: 'kit', id: kit.id }]} imprimantes={imprimantes} dejaImprime={impressions.length > 0} />

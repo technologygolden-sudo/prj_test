@@ -10,6 +10,20 @@ use Illuminate\Support\Facades\DB;
  */
 class Calculateur
 {
+    /**
+     * Une version par type de kit pour simuler : la version active (verrouillée), sinon la dernière version brouillon
+     * qui a au moins un article. Les types sans nomenclature ne sont pas simulables.
+     */
+    public static function versionsSimulables()
+    {
+        return DB::table('version_kit as v')->join('type_kit as t', 't.id', '=', 'v.type_kit_id')
+            ->leftJoin('categorie as c', 'c.id', '=', 't.categorie_id')
+            ->whereExists(fn ($q) => $q->from('composition')->whereColumn('composition.version_kit_id', 'v.id'))
+            ->select('v.id', 'v.numero', 'v.verrouillee', 't.id as type_kit_id', 't.reference', 't.nom', 'c.libelle as categorie')
+            ->orderBy('t.reference')->orderByDesc('v.verrouillee')->orderByDesc('v.numero')
+            ->get()->unique('type_kit_id')->values();
+    }
+
     /** @return array<int, array<int, int>> version_id => [article_id => quantité] */
     public static function compositions(array $versionIds): array
     {

@@ -34,16 +34,17 @@ class SimulationController extends Controller
 
     public function create(): Response
     {
-        $types = TypeKit::with('versionActive')->orderBy('reference')->get()->filter(fn ($t) => $t->versionActive)->values();
-        $compositions = Calculateur::compositions($types->pluck('versionActive.id')->all());
+        $versions = Calculateur::versionsSimulables();
+        $compositions = Calculateur::compositions($versions->pluck('id')->all());
         $articleIds = collect($compositions)->flatMap(fn ($c) => array_keys($c))->unique()->values()->all();
 
         return Inertia::render('Simulation/Creer', [
-            'kits' => $types->map(fn ($t) => [
-                'version_id' => $t->versionActive->id,
-                'libelle' => "{$t->reference} · {$t->nom} (v{$t->versionActive->numero})",
-                'articles' => array_keys($compositions[$t->versionActive->id] ?? []),
-            ]),
+            'kits' => $versions->map(fn ($v) => [
+                'version_id' => $v->id,
+                'libelle' => "{$v->reference} · {$v->nom} (v{$v->numero}".($v->verrouillee ? '' : ', brouillon').')',
+                'categorie' => $v->categorie,
+                'articles' => array_keys($compositions[$v->id] ?? []),
+            ])->values(),
             'articles' => DB::table('article')->whereIn('id', $articleIds)->orderBy('reference')->get(['id', 'reference', 'nom']),
             'stockReel' => Calculateur::stockReel($articleIds),
         ]);
@@ -55,7 +56,8 @@ class SimulationController extends Controller
             'mode' => ['required', 'in:priorite,equilibre,volume'],
             'source_stock' => ['required', 'in:saisie,import,reel'],
             'demandes' => ['required', 'array', 'min:1', 'max:200'],
-            'demandes.*.version_id' => ['required', 'integer', 'distinct', Rule::exists('version_kit', 'id')->where('verrouillee', true)],
+            // Version active, ou brouillon pour un kit pas encore verrouillé : la simulation n'a pas besoin du porteur.
+            'demandes.*.version_id' => ['required', 'integer', 'distinct', Rule::in(Calculateur::versionsSimulables()->pluck('id')->all())],
             'demandes.*.qte' => ['required', 'integer', 'min:0', 'max:1000000'],
             'demandes.*.rang' => ['required', 'integer', 'min:1', 'max:1000'],
             'stock' => ['nullable', 'array', 'max:5000'],

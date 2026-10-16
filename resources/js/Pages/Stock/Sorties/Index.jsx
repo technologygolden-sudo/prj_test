@@ -1,14 +1,14 @@
 import AppLayout from '../../../Layouts/AppLayout';
 import { Bouton, Carte, Pagination, Tableau, dateFr } from '../../../Components/ui';
 
-const types = { expedition: 'Expédition', rebut: 'Rebut', retour_fournisseur: 'Retour fournisseur' };
+const types = { expedition: 'Remise technicien', rebut: 'Mise au rebut', retour_fournisseur: 'Retour fournisseur' };
 
 export default function Index({ sorties }) {
     return (
         <AppLayout titre="Sorties de stock" actions={<Bouton href="/sorties/nouvelle">Nouvelle sortie</Bouton>}>
             <Carte>
                 <Tableau
-                    colonnes={[{ libelle: 'N°' }, { libelle: 'Date' }, { libelle: 'Type' }, { libelle: 'Destinataire' }, { libelle: 'Document' }, { libelle: 'Lignes', droite: true }, { libelle: 'Par' }]}
+                    colonnes={[{ libelle: 'N°' }, { libelle: 'Date' }, { libelle: 'Type' }, { libelle: 'Technicien / destinataire' }, { libelle: 'Commande CRM / document' }, { libelle: 'Lignes', droite: true }, { libelle: 'Par' }]}
                     vide={sorties.data.length === 0 ? 'Aucune sortie pour l’instant.' : null}
                 >
                     {sorties.data.map((s) => (

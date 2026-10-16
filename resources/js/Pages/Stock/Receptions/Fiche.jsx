@@ -10,11 +10,12 @@ export default function Fiche({ reception, unites, imprimantes }) {
         <AppLayout titre={`Réception n° ${reception.id}`} actions={<Bouton variante="secondaire" href="/receptions">Retour</Bouton>}>
             <div className="space-y-6">
                 <Carte>
-                    <dl className="grid gap-4 text-sm sm:grid-cols-4">
+                    <dl className="grid gap-4 text-sm sm:grid-cols-5">
                         {[
                             ['Date', dateFr(reception.date, false)],
                             ['Bon de livraison', reception.num_bl],
                             ['Fournisseur', reception.fournisseur],
+                            ['Pour', reception.espace ?? '—'],
                             ['Réceptionnaire', reception.utilisateur],
                         ].map(([l, v]) => (
                             <div key={l}>

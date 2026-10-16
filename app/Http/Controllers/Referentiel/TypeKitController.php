@@ -21,29 +21,43 @@ class TypeKitController extends Controller
 {
     public function index(Request $request): Response
     {
-        $q = $request->validate(['q' => ['nullable', 'string', 'max:100']])['q'] ?? null;
+        $filtres = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'etat' => ['nullable', 'in:porteur,brouillon,actif,vide'],
+        ]);
+        $q = $filtres['q'] ?? null;
 
-        $types = TypeKit::with(['versionActive', 'brouillon', 'categorie:id,libelle'])
+        $types = TypeKit::with(['versionActive', 'brouillon.porteur:id,reference', 'versionActive.porteur:id,reference', 'categorie:id,libelle'])
             ->withCount('versions')
             ->when($q, fn ($query) => $query->where(fn ($w) => $w
                 ->whereLike('reference', "%{$q}%", caseSensitive: false)
                 ->orWhereLike('nom', "%{$q}%", caseSensitive: false)
                 ->orWhereLike('partno', "%{$q}%", caseSensitive: false)))
+            ->when(($filtres['etat'] ?? null) === 'porteur', fn ($query) => $query->whereHas('brouillon', fn ($b) => $b->whereNull('article_porteur_id')))
+            ->when(($filtres['etat'] ?? null) === 'brouillon', fn ($query) => $query->has('brouillon'))
+            ->when(($filtres['etat'] ?? null) === 'actif', fn ($query) => $query->has('versionActive'))
+            ->when(($filtres['etat'] ?? null) === 'vide', fn ($query) => $query->doesntHave('versions'))
             ->orderBy('reference')
             ->paginate(25)
             ->withQueryString()
-            ->through(fn (TypeKit $t) => [
-                'id' => $t->id,
-                'reference' => $t->reference,
-                'partno' => $t->partno,
-                'nom' => $t->nom,
-                'categorie' => $t->categorie?->libelle,
-                'version_active' => $t->versionActive?->numero,
-                'brouillon' => $t->brouillon?->numero,
-                'versions_count' => $t->versions_count,
-            ]);
+            ->through(function (TypeKit $t) {
+                $travail = $t->brouillon ?? $t->versionActive; // version de travail : le brouillon, sinon l'active
 
-        return Inertia::render('Referentiel/Kits/Index', ['types' => $types, 'filtres' => ['q' => $q]]);
+                return [
+                    'id' => $t->id,
+                    'reference' => $t->reference,
+                    'partno' => $t->partno,
+                    'nom' => $t->nom,
+                    'categorie' => $t->categorie?->libelle,
+                    'version_active' => $t->versionActive?->numero,
+                    'brouillon' => $t->brouillon?->numero,
+                    'versions_count' => $t->versions_count,
+                    'porteur' => $travail?->porteur?->reference,
+                    'articles' => $travail ? DB::table('composition')->where('version_kit_id', $travail->id)->count() : 0,
+                ];
+            });
+
+        return Inertia::render('Referentiel/Kits/Index', ['types' => $types, 'filtres' => $filtres]);
     }
 
     public function create(): Response

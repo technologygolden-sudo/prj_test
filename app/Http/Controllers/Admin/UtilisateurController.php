@@ -28,9 +28,12 @@ class UtilisateurController extends Controller
                 'actif' => $u->actif,
                 'mfa' => $u->aMfaActive(),
                 'roles' => $u->roles->pluck('name'),
+                'site_id' => $u->site_id,
+                'site' => $u->site_id ? DB::table('site')->where('id', $u->site_id)->value('nom') : null,
                 'derniere_connexion' => $u->derniere_connexion?->format('d/m/Y H:i'),
             ]),
             'roles' => Role::where('actif', true)->orderBy('name')->pluck('name'),
+            'sites' => DB::table('site')->where('actif', true)->orderByRaw("type = 'entrepot' desc")->orderBy('nom')->get(['id', 'nom', 'type']),
         ]);
     }
 
@@ -43,6 +46,7 @@ class UtilisateurController extends Controller
             'password' => ['required', 'string', Password::defaults()],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', Rule::exists('roles', 'name')->where('actif', true)],
+            'site_id' => ['nullable', 'integer', Rule::exists('site', 'id')],
         ], ['login.regex' => 'Le login ne contient que des minuscules, chiffres, points, tirets et soulignés.']);
 
         $user = DB::transaction(function () use ($request, $donnees) {
@@ -65,6 +69,7 @@ class UtilisateurController extends Controller
             'actif' => ['required', 'boolean'],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', Rule::exists('roles', 'name')->where('actif', true)],
+            'site_id' => ['nullable', 'integer', Rule::exists('site', 'id')],
         ]);
 
         $moi = $request->user();
@@ -82,15 +87,15 @@ class UtilisateurController extends Controller
             return back()->with('alerte', 'C’est le dernier administrateur actif : il doit le rester.');
         }
 
-        $avant = $utilisateur->only(['name', 'email', 'actif']) + ['roles' => $rolesAvant];
+        $avant = $utilisateur->only(['name', 'email', 'actif', 'site_id']) + ['roles' => $rolesAvant];
 
         DB::transaction(function () use ($utilisateur, $donnees, $moi, $avant, $rolesAvant, $rolesApres) {
-            $utilisateur->update(collect($donnees)->only(['name', 'email', 'actif'])->all());
+            $utilisateur->update(collect($donnees)->only(['name', 'email', 'actif', 'site_id'])->all() + ['site_id' => $donnees['site_id'] ?? null]);
             if ($rolesAvant !== $rolesApres) {
                 $utilisateur->syncRoles($donnees['roles']);
                 $this->tracerAttribution($utilisateur, $moi->id);
             }
-            Audit::enregistrer('modifier', $utilisateur, $avant, $utilisateur->only(['name', 'email', 'actif']) + ['roles' => $rolesApres]);
+            Audit::enregistrer('modifier', $utilisateur, $avant, $utilisateur->only(['name', 'email', 'actif', 'site_id']) + ['roles' => $rolesApres]);
         });
 
         return back()->with('succes', "Utilisateur {$utilisateur->login} modifié.");

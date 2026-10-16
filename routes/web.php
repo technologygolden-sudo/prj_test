@@ -110,6 +110,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/kits-assembles/{kit}/desassembler', [KitAssembleController::class, 'desassembler'])
             ->middleware('permission:assemblage.annuler')->name('kits-assembles.desassembler');
 
+        require __DIR__.'/emplacements.php';
+
         Route::post('/etiquettes/imprimer', [EtiquetteController::class, 'imprimer'])
             ->middleware('permission:etiquettes.imprimer')->name('etiquettes.imprimer');
 

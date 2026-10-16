@@ -51,6 +51,15 @@ class Stock
         return DB::table('unite_article')->where('id', $id)->lockForUpdate()->first();
     }
 
+    /** Message quand un code scanné ne désigne aucune unité : le QR code porte la référence CRM, pas l'unité. */
+    public static function aideScan(string $code, string $parDefaut): string
+    {
+        $reference = DB::table('article')->whereRaw('upper(reference) = ?', [strtoupper(trim($code))])->exists()
+            || DB::table('type_kit')->whereRaw('upper(reference) = ?', [strtoupper(trim($code))])->exists();
+
+        return $reference ? 'Ce QR code donne la référence CRM : scannez le code-barres (n° de série) pour identifier l’unité.' : $parDefaut;
+    }
+
     /**
      * Retrouve une unité à partir d'un code scanné : UID (QR, ou Code 128 d'un lot) ou n° de série (Code 128).
      *

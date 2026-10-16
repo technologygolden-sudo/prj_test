@@ -20,7 +20,7 @@ export default function Index({ articles, filtres, categories }) {
                         filtrer({ page: undefined });
                     }}
                 >
-                    <Saisie type="search" placeholder="Référence ou nom" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" aria-label="Rechercher" />
+                    <Saisie type="search" placeholder="Référence CRM ou désignation" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" aria-label="Rechercher" />
                     <Liste value={filtres.categorie ?? ''} onChange={(e) => filtrer({ categorie: e.target.value || undefined, page: undefined })} className="max-w-48" aria-label="Catégorie">
                         <option value="">Toutes catégories</option>
                         {categories.map((c) => (
@@ -39,7 +39,7 @@ export default function Index({ articles, filtres, categories }) {
                     </Bouton>
                 </form>
                 <Tableau
-                    colonnes={[{ libelle: 'Référence' }, { libelle: 'Nom' }, { libelle: 'Catégorie' }, { libelle: 'Fabricant' }, { libelle: 'Suivi' }]}
+                    colonnes={[{ libelle: 'Référence CRM' }, { libelle: 'Désignation' }, { libelle: 'Catégorie' }, { libelle: 'Fabricant' }, { libelle: 'Suivi' }]}
                     vide={articles.data.length === 0 ? 'Aucun article ne correspond.' : null}
                 >
                     {articles.data.map((a) => (
@@ -56,7 +56,13 @@ export default function Index({ articles, filtres, categories }) {
                             <td className="px-5 py-2">{a.nom}</td>
                             <td className="px-5 py-2 text-slate-600">{a.categorie?.libelle ?? '—'}</td>
                             <td className="px-5 py-2 text-slate-600">{a.fabricant?.nom ?? '—'}</td>
-                            <td className="px-5 py-2">{a.est_serialise ? <Pastille couleur="vert">N° de série</Pastille> : <Pastille>Lot</Pastille>}</td>
+                            <td className="px-5 py-2">
+                                <div className="flex flex-wrap gap-1">
+                                    {a.est_serialise ? <Pastille couleur="vert">N° de série</Pastille> : <Pastille>Lot</Pastille>}
+                                    {a.est_porteur && <Pastille couleur="orange">Porteur de série</Pastille>}
+                                    {a.kits_count > 0 && <Pastille>Dans {a.kits_count} kit(s)</Pastille>}
+                                </div>
+                            </td>
                         </tr>
                     ))}
                 </Tableau>

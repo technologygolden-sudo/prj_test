@@ -2,6 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import AppLayout from '../../../Layouts/AppLayout';
 import PanneauImpression from '../../../Components/PanneauImpression';
 import { Impressions, Mouvements } from '../../../Components/Historique';
+import ActionsElement from '../../../Components/ActionsElement';
 import { Bouton, Carte, Champ, Saisie, Statut, dateFr, usePeut } from '../../../Components/ui';
 
 function Ajustement({ unite }) {
@@ -35,7 +36,7 @@ function Ajustement({ unite }) {
     );
 }
 
-export default function Fiche({ unite, kitParent, mouvements, impressions, imprimantes }) {
+export default function Fiche({ unite, kitParent, mouvements, impressions, imprimantes, emplacement, emplacements, historique }) {
     const peut = usePeut();
 
     return (
@@ -50,7 +51,7 @@ export default function Fiche({ unite, kitParent, mouvements, impressions, impri
                             ['Quantité', `${unite.quantite_restante} / ${unite.quantite_initiale}`],
                             ['Fabricant', unite.fabricant ?? '—'],
                             ['Réception', unite.num_bl ? <Link href={`/receptions/${unite.reception_id}`} className="text-green-800 hover:underline">{unite.num_bl} du {dateFr(unite.date_reception, false)}</Link> : '—'],
-                            ['Emplacement', unite.emplacement ?? '—'],
+                            ['Repère de rangement', unite.emplacement ?? '—'],
                             ['Kit parent', kitParent ? <Link href={`/kits-assembles/${kitParent.id}`} className="text-green-800 hover:underline">S/N {kitParent.numero_serie}</Link> : '—'],
                         ].map(([l, v]) => (
                             <div key={l}>
@@ -60,6 +61,7 @@ export default function Fiche({ unite, kitParent, mouvements, impressions, impri
                         ))}
                     </dl>
                 </Carte>
+                <ActionsElement type="unite" element={unite} emplacement={emplacement} emplacements={emplacements} historique={historique} disponible={unite.statut === 'en_stock'} />
                 <Carte titre="Étiquette">
                     <PanneauImpression cibles={[{ type: 'unite', id: unite.id }]} imprimantes={imprimantes} dejaImprime={impressions.length > 0} />
                     <div className="mt-4">

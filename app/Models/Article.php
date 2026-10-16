@@ -27,6 +27,18 @@ class Article extends Model
         return $this->belongsTo(Fabricant::class);
     }
 
+    /** Versions de kit dont l'article est le porteur de série. */
+    public function porteurDe(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(VersionKit::class, 'article_porteur_id');
+    }
+
+    /** Versions de kit dont l'article fait partie (un article peut entrer dans plusieurs kits). */
+    public function kits(): BelongsToMany
+    {
+        return $this->belongsToMany(VersionKit::class, 'composition', 'article_id', 'version_kit_id');
+    }
+
     /** RG14 : produits associés, sans effet sur la nomenclature. */
     public function associes(): BelongsToMany
     {

@@ -7,7 +7,8 @@ export function classes(...noms) {
 /** Masque un élément d'interface sans permission ; le serveur contrôle de toute façon (RG22). */
 export function usePeut() {
     const { auth } = usePage().props;
-    return (permission) => auth.permissions.includes(permission);
+    // Une liste de permissions = au moins l'une d'elles.
+    return (permission) => (Array.isArray(permission) ? permission.some((p) => auth.permissions.includes(p)) : auth.permissions.includes(permission));
 }
 
 const styles = {
@@ -98,7 +99,8 @@ const libellesStatut = {
     en_stock: ['En stock', 'vert'],
     assemble: ['Assemblé', 'gris'],
     epuise: ['Épuisé', 'gris'],
-    expedie: ['Expédié', 'gris'],
+    expedie: ['Remis au technicien', 'gris'],
+    en_transit: ['En transit', 'orange'],
     rebute: ['Rebuté', 'rouge'],
     retourne: ['Retourné', 'orange'],
     perdu: ['Perdu', 'rouge'],

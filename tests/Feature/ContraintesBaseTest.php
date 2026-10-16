@@ -32,7 +32,7 @@ class ContraintesBaseTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->assertSame(count(PermissionSeeder::CATALOGUE), Permission::count());
-        $this->assertSame(6, Role::count());
+        $this->assertSame(count(PermissionSeeder::ROLES) + 1, Role::count());
 
         $admin = Role::findByName(PermissionSeeder::ADMINISTRATEUR);
         $this->assertTrue((bool) $admin->systeme);

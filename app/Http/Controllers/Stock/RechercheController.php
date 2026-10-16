@@ -31,8 +31,12 @@ class RechercheController extends Controller
                 ->get(['unite_article.id', 'uid', 'numero_serie', 'statut', 'nature', 'article.reference']) as $u) {
                 $resultats[] = ['type' => $u->nature === 'serie' ? 'Article sérialisé' : 'Lot', 'libelle' => $u->reference.($u->numero_serie ? " · S/N {$u->numero_serie}" : ''), 'detail' => $u->uid, 'statut' => $u->statut, 'url' => "/stock/{$u->id}"];
             }
+            // QR code des étiquettes = référence CRM : on ouvre le stock de l'article ou les kits assemblés du type.
             foreach (DB::table('article')->where('reference', 'ilike', $q)->get(['id', 'reference', 'nom']) as $a) {
-                $resultats[] = ['type' => 'Article', 'libelle' => "{$a->reference} · {$a->nom}", 'detail' => null, 'statut' => null, 'url' => '/stock?q='.urlencode($a->reference)];
+                $resultats[] = ['type' => 'Article (référence CRM)', 'libelle' => "{$a->reference} · {$a->nom}", 'detail' => null, 'statut' => null, 'url' => '/stock?q='.urlencode($a->reference)];
+            }
+            foreach (DB::table('type_kit')->where('reference', 'ilike', $q)->get(['id', 'reference', 'nom']) as $t) {
+                $resultats[] = ['type' => 'Type de kit (référence CRM)', 'libelle' => "{$t->reference} · {$t->nom}", 'detail' => null, 'statut' => null, 'url' => '/kits-assembles?q='.urlencode($t->reference)];
             }
         }
 

@@ -1,13 +1,13 @@
 import { Link } from '@inertiajs/react';
 import AppLayout from '../../../Layouts/AppLayout';
-import { Bouton, Carte, Pagination, Tableau, dateFr } from '../../../Components/ui';
+import { Bouton, Carte, Pagination, Pastille, Tableau, dateFr } from '../../../Components/ui';
 
 export default function Index({ receptions }) {
     return (
         <AppLayout titre="Réceptions" actions={<Bouton href="/receptions/nouvelle">Nouvelle réception</Bouton>}>
             <Carte>
                 <Tableau
-                    colonnes={[{ libelle: 'N°' }, { libelle: 'Date' }, { libelle: 'Bon de livraison' }, { libelle: 'Fournisseur' }, { libelle: 'Unités', droite: true }, { libelle: 'Par' }]}
+                    colonnes={[{ libelle: 'N°' }, { libelle: 'Date' }, { libelle: 'Bon de livraison' }, { libelle: 'Fournisseur' }, { libelle: 'Pour' }, { libelle: 'Unités', droite: true }, { libelle: 'Par' }]}
                     vide={receptions.data.length === 0 ? 'Aucune réception pour l’instant.' : null}
                 >
                     {receptions.data.map((r) => (
@@ -20,6 +20,7 @@ export default function Index({ receptions }) {
                             <td className="px-5 py-2">{dateFr(r.date, false)}</td>
                             <td className="px-5 py-2">{r.num_bl}</td>
                             <td className="px-5 py-2">{r.fournisseur}</td>
+                            <td className="px-5 py-2"><Pastille>{r.espace ?? '—'}</Pastille></td>
                             <td className="px-5 py-2 text-right tabular-nums">{r.unites}</td>
                             <td className="px-5 py-2 text-slate-600">{r.utilisateur}</td>
                         </tr>

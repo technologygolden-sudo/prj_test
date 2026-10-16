@@ -2,7 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AppLayout from '../../../Layouts/AppLayout';
 import { postJson } from '../../../Components/http';
-import { Bouton, Carte, Champ, Liste, Saisie, Tableau } from '../../../Components/ui';
+import { Bouton, Carte, Champ, Liste, Pastille, Saisie, Tableau } from '../../../Components/ui';
 
 export default function Creer() {
     const { data, setData, post, processing, errors } = useForm({ type: 'expedition', destinataire: '', document: '', lignes: [] });
@@ -30,6 +30,9 @@ export default function Creer() {
 
     return (
         <AppLayout titre="Nouvelle sortie de stock">
+            {data.type === 'expedition' && (
+                <p className="mb-4 rounded-md bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200">Seuls les éléments rangés dans un shop peuvent être remis à un technicien. La livraison au client se suit ensuite dans le CRM.</p>
+            )}
             <form
                 className="space-y-6"
                 onSubmit={(e) => {
@@ -41,15 +44,15 @@ export default function Creer() {
                     <div className="grid gap-4 sm:grid-cols-3">
                         <Champ libelle="Type" erreur={errors.type}>
                             <Liste value={data.type} onChange={(e) => setData('type', e.target.value)}>
-                                <option value="expedition">Expédition</option>
-                                <option value="rebut">Rebut</option>
+                                <option value="expedition">Remise à un technicien (livraison, installation)</option>
+                                <option value="rebut">Mise au rebut (hors d’usage définitif)</option>
                                 <option value="retour_fournisseur">Retour fournisseur</option>
                             </Liste>
                         </Champ>
-                        <Champ libelle="Destinataire" erreur={errors.destinataire}>
-                            <Saisie value={data.destinataire} onChange={(e) => setData('destinataire', e.target.value)} placeholder={data.type === 'expedition' ? 'Client ou chantier' : 'Facultatif'} />
+                        <Champ libelle={data.type === 'expedition' ? 'Technicien' : 'Destinataire'} erreur={errors.destinataire}>
+                            <Saisie value={data.destinataire} onChange={(e) => setData('destinataire', e.target.value)} placeholder={data.type === 'expedition' ? 'Nom du technicien' : 'Facultatif'} />
                         </Champ>
-                        <Champ libelle="Document" erreur={errors.document}>
+                        <Champ libelle={data.type === 'expedition' ? 'N° de commande CRM' : 'Document'} erreur={errors.document}>
                             <Saisie value={data.document} onChange={(e) => setData('document', e.target.value)} placeholder="Bon de sortie, n° de commande…" />
                         </Champ>
                     </div>
@@ -76,11 +79,13 @@ export default function Creer() {
                     </div>
                     {message && <p className={`mb-3 text-sm ${message.alerte ? 'text-amber-800' : 'text-green-800'}`}>{message.texte}</p>}
                     {errors.lignes && <p className="mb-3 text-sm text-red-700">{errors.lignes}</p>}
-                    <Tableau colonnes={[{ libelle: 'Élément' }, { libelle: 'UID' }, { libelle: 'Quantité', droite: true }, { libelle: '' }]} vide={data.lignes.length === 0 ? 'Scannez les éléments qui sortent.' : null}>
+                    <Tableau colonnes={[{ libelle: 'Élément' }, { libelle: 'Emplacement' }, { libelle: 'Quantité', droite: true }, { libelle: '' }]} vide={data.lignes.length === 0 ? 'Scannez les éléments qui sortent.' : null}>
                         {data.lignes.map((l, i) => (
                             <tr key={`${l.type}-${l.id}`}>
-                                <td className="px-5 py-2">{l.libelle}</td>
-                                <td className="px-5 py-2 font-mono text-xs">{l.uid}</td>
+                                <td className="px-5 py-2">
+                                    {l.type === 'kit' ? <Pastille couleur="vert">Kit</Pastille> : <Pastille>Article</Pastille>} {l.libelle}
+                                </td>
+                                <td className="px-5 py-2 text-slate-600">{l.emplacement ?? '—'} {data.type === 'expedition' && !l.shop && <Pastille couleur="rouge">Hors shop</Pastille>}</td>
                                 <td className="px-5 py-2 text-right">
                                     {l.max > 1 ? (
                                         <div className="ml-auto w-24">

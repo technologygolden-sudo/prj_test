@@ -66,6 +66,7 @@ export default function Creer({ articles }) {
         num_bl: '',
         fournisseur: '',
         emplacement: '',
+        espace: '',
         lignes: [{ article_id: '', quantite: 1, series: [] }],
     });
 
@@ -82,6 +83,24 @@ export default function Creer({ articles }) {
                 }}
             >
                 <Carte titre="Bon de livraison">
+                    <fieldset className="mb-5">
+                        <legend className="mb-2 text-sm font-medium text-slate-700">Réception pour</legend>
+                        <div className="flex flex-wrap gap-3">
+                            {['GREENO', 'TEVIA'].map((espace) => (
+                                <label
+                                    key={espace}
+                                    className={`flex cursor-pointer items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold ring-1 ${
+                                        data.espace === espace ? 'bg-green-800 text-white ring-green-800' : 'bg-white text-slate-800 ring-slate-300 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    <input type="radio" name="espace" value={espace} checked={data.espace === espace} onChange={() => setData('espace', espace)} className="sr-only" />
+                                    {espace}
+                                </label>
+                            ))}
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">Les articles appartiendront à ce propriétaire et arriveront dans sa Réception, à l’entrepôt.</p>
+                        {errors.espace && <p className="mt-1 text-sm text-red-700">{errors.espace}</p>}
+                    </fieldset>
                     <div className="grid gap-4 sm:grid-cols-4">
                         <Champ libelle="Date" htmlFor="date" erreur={errors.date}>
                             <Saisie id="date" type="date" value={data.date} max={aujourdhui} onChange={(e) => setData('date', e.target.value)} />
@@ -92,7 +111,7 @@ export default function Creer({ articles }) {
                         <Champ libelle="Fournisseur" htmlFor="fournisseur" erreur={errors.fournisseur}>
                             <Saisie id="fournisseur" value={data.fournisseur} onChange={(e) => setData('fournisseur', e.target.value)} />
                         </Champ>
-                        <Champ libelle="Emplacement" htmlFor="emplacement" erreur={errors.emplacement}>
+                        <Champ libelle="Repère de rangement" htmlFor="emplacement" erreur={errors.emplacement}>
                             <Saisie id="emplacement" value={data.emplacement} onChange={(e) => setData('emplacement', e.target.value)} placeholder="Allée, étagère…" />
                         </Champ>
                     </div>

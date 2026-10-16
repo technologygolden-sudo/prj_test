@@ -21,8 +21,14 @@ class PermissionSeeder extends Seeder
         'kits.gerer' => ['referentiel', 'Gérer types de kit et versions', false],
         'kits.verrouiller' => ['referentiel', 'Verrouiller une version', true],
         'reception.creer' => ['stock', 'Réceptionner des articles', false],
-        'stock.sortir' => ['stock', 'Expédier, rebuter, retourner', false],
+        'stock.sortir' => ['stock', 'Expédier (depuis un shop), rebuter, retourner', false],
         'stock.ajuster' => ['stock', "Ajuster l'inventaire", true],
+        'stock.deplacer' => ['stock', 'Déplacer entre emplacements d’un site (avec motif)', false],
+        'stock.ceder' => ['stock', 'Céder du stock entre GREENO et TEVIA', true],
+        'transferts.envoyer' => ['stock', 'Envoyer un transfert vers un autre site', false],
+        'transferts.recevoir' => ['stock', 'Valider la réception d’un transfert', false],
+        'sav.declarer' => ['sav', 'Déclarer un défaut (SAV)', false],
+        'lab.reparer' => ['sav', 'Déclarer une réparation ou un reconditionnement (Lab)', false],
         'assemblage.realiser' => ['stock', 'Assembler un kit', false],
         'assemblage.annuler' => ['stock', 'Désassembler un kit', true],
         'etiquettes.imprimer' => ['etiquettes', 'Imprimer une étiquette', false],
@@ -46,8 +52,21 @@ class PermissionSeeder extends Seeder
             'recherche.scanner', 'capacite.consulter',
         ],
         'Réceptionnaire' => [
-            'articles.voir', 'reception.creer', 'stock.sortir',
+            'articles.voir', 'reception.creer', 'stock.sortir', 'stock.deplacer',
+            'transferts.envoyer', 'transferts.recevoir',
             'etiquettes.imprimer', 'etiquettes.reimprimer', 'recherche.scanner',
+        ],
+        'Technicien Lab' => [
+            'articles.voir', 'recherche.scanner', 'stock.deplacer', 'lab.reparer',
+            'etiquettes.imprimer', 'etiquettes.reimprimer',
+        ],
+        'Agent SAV' => [
+            'articles.voir', 'recherche.scanner', 'stock.deplacer', 'sav.declarer',
+            'transferts.envoyer', 'transferts.recevoir', 'etiquettes.imprimer',
+        ],
+        'Shop manager' => [
+            'articles.voir', 'recherche.scanner', 'stock.deplacer', 'stock.sortir', 'sav.declarer',
+            'transferts.envoyer', 'transferts.recevoir', 'etiquettes.imprimer', 'etiquettes.reimprimer',
         ],
         'Assembleur' => [
             'articles.voir', 'assemblage.realiser', 'assemblage.annuler',
@@ -66,11 +85,15 @@ class PermissionSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
+        $nouvelles = [];
         foreach (self::CATALOGUE as $code => [$module, $libelle, $sensible]) {
-            Permission::updateOrCreate(
+            $permission = Permission::updateOrCreate(
                 ['name' => $code, 'guard_name' => 'web'],
                 ['module' => $module, 'libelle' => $libelle, 'sensible' => $sensible],
             );
+            if ($permission->wasRecentlyCreated) {
+                $nouvelles[] = $code;
+            }
         }
 
         $admin = Role::updateOrCreate(
@@ -79,10 +102,16 @@ class PermissionSeeder extends Seeder
         );
         $admin->syncPermissions(array_keys(self::CATALOGUE));
 
+        // Ancien nom du rôle de gestion d'un centre de service.
+        Role::where(['name' => 'Responsable centre', 'guard_name' => 'web'])->update(['name' => 'Shop manager']);
+
         foreach (self::ROLES as $nom => $permissions) {
             $role = Role::firstOrCreate(['name' => $nom, 'guard_name' => 'web']);
             if ($role->wasRecentlyCreated) {
                 $role->syncPermissions($permissions);
+            } elseif ($ajouts = array_intersect($permissions, $nouvelles)) {
+                // Rôle déjà ajusté par l'administrateur : on ne lui ajoute que les permissions apparues depuis.
+                $role->givePermissionTo($ajouts);
             }
         }
 

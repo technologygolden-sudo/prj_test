@@ -23,6 +23,9 @@ class ParametreController extends Controller
         return Inertia::render('Admin/Parametres', [
             'societe' => DB::table('parametre_societe')->where('id', 1)->first(['nom_societe', 'num_sav', 'modifie_le']),
             'imprimantes' => DB::table('imprimante')->orderBy('nom')->get(),
+            'sites' => DB::table('site')->orderByRaw("type = 'entrepot' desc")->orderBy('nom')->get()->map(fn ($s) => (array) $s + [
+                'emplacements' => DB::table('emplacement')->where('site_id', $s->id)->orderBy('espace')->orderBy('id')->get(['id', 'nom', 'type', 'espace', 'vente', 'actif']),
+            ]),
             'modeles' => DB::table('modele_etiquette')->orderBy('cible')->orderBy('format')->get(['id', 'code', 'cible', 'format', 'largeur_mm', 'hauteur_mm', 'dpi', 'actif']),
         ]);
     }

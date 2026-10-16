@@ -3,7 +3,7 @@ import { Champ, Liste, Saisie } from './ui';
 export default function ChampsTypeKit({ data, setData, errors, categories, fabricants }) {
     return (
         <div className="grid gap-4 sm:grid-cols-2">
-            <Champ libelle="Référence" htmlFor="reference" erreur={errors.reference}>
+            <Champ libelle="Référence CRM" htmlFor="reference" erreur={errors.reference}>
                 <Saisie id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} invalide={errors.reference} />
             </Champ>
             <Champ libelle="PartNo" htmlFor="partno" erreur={errors.partno}>

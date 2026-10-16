@@ -26,6 +26,10 @@ class ArticleController extends Controller
         ]);
 
         $articles = Article::with(['categorie:id,libelle', 'fabricant:id,nom'])
+            // Tag « porteur de série » : l'article donne son n° de série à au moins un kit.
+            ->withExists(['porteurDe as est_porteur'])
+            ->selectSub(fn ($s) => $s->from('composition')->join('version_kit', 'version_kit.id', '=', 'composition.version_kit_id')
+                ->whereColumn('composition.article_id', 'article.id')->selectRaw('count(distinct version_kit.type_kit_id)'), 'kits_count')
             ->when($filtres['q'] ?? null, fn ($q, $texte) => $q->where(fn ($q) => $q
                 ->whereLike('reference', "%{$texte}%", caseSensitive: false)
                 ->orWhereLike('nom', "%{$texte}%", caseSensitive: false)))
@@ -128,6 +132,9 @@ class ArticleController extends Controller
             'associes.*' => ['integer', 'distinct', Rule::exists('article', 'id'), Rule::notIn([$article?->id])],
         ], [
             'fabricant_id.required_if_accepted' => 'Un article sérialisé doit avoir un fabricant (unicité du n° de série).',
+        ], [
+            'reference' => 'référence CRM',
+            'nom' => 'désignation',
         ]);
     }
 

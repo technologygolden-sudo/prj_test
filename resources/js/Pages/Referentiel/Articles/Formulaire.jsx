@@ -37,10 +37,10 @@ export default function Formulaire({ article, categories, fabricants, tousArticl
             <form onSubmit={envoyer} className="space-y-6">
                 <Carte titre="Identification">
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <Champ libelle="Référence" htmlFor="reference" erreur={errors.reference}>
+                        <Champ libelle="Référence CRM" htmlFor="reference" erreur={errors.reference}>
                             <Saisie id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} invalide={errors.reference} />
                         </Champ>
-                        <Champ libelle="Nom" htmlFor="nom" erreur={errors.nom}>
+                        <Champ libelle="Désignation" htmlFor="nom" erreur={errors.nom}>
                             <Saisie id="nom" value={data.nom} onChange={(e) => setData('nom', e.target.value)} invalide={errors.nom} />
                         </Champ>
                         <Champ libelle="Catégorie" htmlFor="categorie_id" erreur={errors.categorie_id}>

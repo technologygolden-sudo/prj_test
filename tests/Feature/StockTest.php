@@ -39,7 +39,7 @@ class StockTest extends TestCase
     public function test_reception_controle_les_numeros_de_serie(): void
     {
         $onduleur = $this->article('OND-5K');
-        $base = ['date' => now()->toDateString(), 'num_bl' => 'BL-1', 'fournisseur' => 'Huawei'];
+        $base = ['date' => now()->toDateString(), 'num_bl' => 'BL-1', 'fournisseur' => 'Huawei', 'espace' => 'TEVIA'];
 
         // RG26 : nombre de n° différent de la quantité.
         $this->actingAs($this->admin)->post('/receptions', $base + ['lignes' => [
@@ -74,7 +74,8 @@ class StockTest extends TestCase
         $this->assertCount(1, $fichiers);
         $zpl = Storage::disk('local')->get($fichiers[0]);
         $this->assertStringContainsString('GREENO', $zpl);
-        $this->assertStringContainsString(str_replace('-', '_2D', $unite->uid), $zpl);
+        $this->assertStringContainsString('^FDMA,OND_2D5K^FS', $zpl); // QR code = référence CRM
+        $this->assertStringContainsString('^FDOND_2DDEMO_2D001^FS', $zpl); // code-barres = n° de série
 
         // RG12 : la réimpression exige un motif, et un lecteur ne peut pas imprimer.
         $this->actingAs($this->admin)->post('/etiquettes/imprimer', $demande)->assertSessionHasErrors('motif');

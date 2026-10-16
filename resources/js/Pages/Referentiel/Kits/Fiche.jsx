@@ -45,7 +45,7 @@ function InfosKit({ kit, categories, fabricants }) {
         <Carte titre="Type de kit" actions={peut('kits.gerer') && <Bouton variante="secondaire" onClick={() => setEdition(true)}>Modifier</Bouton>}>
             <dl className="grid gap-4 text-sm sm:grid-cols-4">
                 {[
-                    ['Référence', kit.reference],
+                    ['Référence CRM', kit.reference],
                     ['PartNo', kit.partno],
                     ['Catégorie', kit.categorie ?? '—'],
                     ['Fabricant', kit.fabricant ?? '—'],
