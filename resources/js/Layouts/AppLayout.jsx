@@ -123,7 +123,7 @@ export default function AppLayout({ titre, actions, children }) {
     return (
         <div className="min-h-screen lg:flex">
             <Head title={titre} />
-            <aside className="hidden w-60 shrink-0 bg-green-800 lg:flex lg:flex-col">
+            <aside className="hidden w-60 shrink-0 bg-green-900 lg:flex lg:flex-col">
                 <div className="flex h-14 items-center border-b border-white/10 px-5">
                     <Link href="/" className="text-base font-semibold text-white">
                         {app.nom}
@@ -153,7 +153,7 @@ export default function AppLayout({ titre, actions, children }) {
                         </button>
                     </div>
                 </header>
-                {menuOuvert && <div className="bg-green-800 lg:hidden">{menu}</div>}
+                {menuOuvert && <div className="bg-green-900 lg:hidden">{menu}</div>}
 
                 <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">
                     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
