@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
 
         Route::middleware(['permission:articles.gerer', 'permission:kits.gerer'])->group(function () {
             Route::get('/import', [ImportController::class, 'index'])->name('import.index');
+            Route::get('/import/modele', [ImportController::class, 'modele'])->name('import.modele');
             Route::post('/import/analyser', [ImportController::class, 'analyser'])->name('import.analyser');
             Route::post('/import/appliquer', [ImportController::class, 'appliquer'])->name('import.appliquer');
             Route::post('/import/annuler', [ImportController::class, 'annuler'])->name('import.annuler');

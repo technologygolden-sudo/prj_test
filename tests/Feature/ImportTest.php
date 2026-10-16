@@ -127,6 +127,20 @@ class ImportTest extends TestCase
         $this->actingAs($this->gestion)->post('/import/appliquer', ['jeton' => '9b2c4a7e-1d3f-4e8a-9c21-7d4e5f6a8b90'])->assertSessionHas('alerte');
     }
 
+    public function test_le_modele_telecharge_est_reimportable(): void
+    {
+        $reponse = $this->actingAs($this->gestion)->get('/import/modele');
+        $reponse->assertOk()->assertDownload('modele-import-referentiel.xlsx');
+
+        $chemin = tempnam(sys_get_temp_dir(), 'mod').'.xlsx';
+        file_put_contents($chemin, $reponse->getContent());
+        $apercu = $this->importer(new UploadedFile($chemin, 'modele.xlsx', null, null, true));
+
+        $this->assertSame([], $apercu['erreurs']);
+        $this->assertSame(2, DB::table('article')->count());
+        $this->assertSame(2, DB::table('type_kit')->count());
+    }
+
     public function test_reserve_aux_gestionnaires(): void
     {
         $lecteur = tap(User::factory()->create(), fn ($u) => $u->assignRole('Lecteur'));

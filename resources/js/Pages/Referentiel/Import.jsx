@@ -126,7 +126,14 @@ export default function Import({ apercu, bilan }) {
     return (
         <AppLayout titre="Import Excel du référentiel">
             <div className="space-y-6">
-                <Carte titre="Charger un fichier">
+                <Carte
+                    titre="Charger un fichier"
+                    actions={
+                        <Bouton variante="secondaire" href="/import/modele" externe>
+                            Télécharger le modèle Excel
+                        </Bouton>
+                    }
+                >
                     <form
                         className="flex flex-wrap items-end gap-3"
                         onSubmit={(e) => {

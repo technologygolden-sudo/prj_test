@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Referentiel;
 
 use App\Http\Controllers\Controller;
 use App\Support\Import\ImportReferentiel;
+use App\Support\Import\ModeleImport;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -21,6 +23,15 @@ class ImportController extends Controller
         return Inertia::render('Referentiel/Import', [
             'apercu' => $request->session()->get('import.apercu'),
             'bilan' => $request->session()->get('import.bilan'),
+        ]);
+    }
+
+    /** Modèle Excel vierge, au format attendu par l'import. */
+    public function modele(ModeleImport $modele): HttpResponse
+    {
+        return response($modele->generer(), 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="modele-import-referentiel.xlsx"',
         ]);
     }
 
