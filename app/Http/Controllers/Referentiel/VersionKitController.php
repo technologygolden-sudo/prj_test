@@ -51,7 +51,7 @@ class VersionKitController extends Controller
         $avant = Nomenclature::instantane($version);
 
         DB::transaction(function () use ($version, $donnees, $avant) {
-            Nomenclature::enregistrer($version, $donnees['porteur_id'], $donnees['lignes'] ?? []);
+            Nomenclature::enregistrer($version, isset($donnees['porteur_id']) ? (int) $donnees['porteur_id'] : null, $donnees['lignes'] ?? []);
             Audit::enregistrer('modifier', $version, $avant, Nomenclature::instantane($version));
         });
 
@@ -62,6 +62,9 @@ class VersionKitController extends Controller
     {
         if ($version->verrouillee) {
             return back()->with('alerte', 'Cette version est déjà verrouillée.');
+        }
+        if ($version->article_porteur_id === null) {
+            return back()->with('alerte', 'Choisissez d’abord l’article porteur de série (RG05), puis enregistrez la nomenclature.');
         }
 
         DB::transaction(function () use ($request, $version) {

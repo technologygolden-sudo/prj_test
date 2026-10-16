@@ -9,6 +9,7 @@ use App\Http\Controllers\Compte\SecuriteController;
 use App\Http\Controllers\Referentiel\ArticleController;
 use App\Http\Controllers\Referentiel\CategorieController;
 use App\Http\Controllers\Referentiel\FabricantController;
+use App\Http\Controllers\Referentiel\ImportController;
 use App\Http\Controllers\Referentiel\TypeKitController;
 use App\Http\Controllers\Referentiel\VersionKitController;
 use App\Http\Controllers\Simulation\CapaciteController;
@@ -69,6 +70,13 @@ Route::middleware('auth')->group(function () {
             Route::post('/kits/{kit}/versions', [VersionKitController::class, 'store'])->name('versions.store');
             Route::put('/versions/{version}', [VersionKitController::class, 'update'])->name('versions.update');
             Route::delete('/versions/{version}', [VersionKitController::class, 'destroy'])->name('versions.destroy');
+        });
+
+        Route::middleware(['permission:articles.gerer', 'permission:kits.gerer'])->group(function () {
+            Route::get('/import', [ImportController::class, 'index'])->name('import.index');
+            Route::post('/import/analyser', [ImportController::class, 'analyser'])->name('import.analyser');
+            Route::post('/import/appliquer', [ImportController::class, 'appliquer'])->name('import.appliquer');
+            Route::post('/import/annuler', [ImportController::class, 'annuler'])->name('import.annuler');
         });
 
         Route::post('/versions/{version}/verrouiller', [VersionKitController::class, 'verrouiller'])

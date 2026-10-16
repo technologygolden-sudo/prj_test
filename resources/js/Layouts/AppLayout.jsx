@@ -15,6 +15,7 @@ const navigation = [
     { titre: 'Types de kit', href: '/kits', permission: 'articles.voir' },
     { titre: 'Catégories', href: '/categories', permission: 'articles.gerer' },
     { titre: 'Fabricants', href: '/fabricants', permission: 'articles.gerer' },
+    { titre: 'Import Excel', href: '/import', permission: 'kits.gerer' },
     { section: 'Planification' },
     { titre: 'Capacité', href: '/capacite', permission: 'capacite.consulter' },
     { titre: 'Simulations', href: '/simulations', permission: 'simulation.lancer' },
@@ -99,7 +100,7 @@ export default function AppLayout({ titre, actions, children }) {
         <nav className="flex flex-col gap-0.5 p-3">
             {liens.map((item) =>
                 item.section ? (
-                    <p key={item.section} className="mt-4 mb-1 px-3 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                    <p key={item.section} className="mt-4 mb-1 px-3 text-xs font-semibold tracking-wide text-green-200/70 uppercase">
                         {item.section}
                     </p>
                 ) : (
@@ -109,7 +110,7 @@ export default function AppLayout({ titre, actions, children }) {
                         onClick={() => setMenuOuvert(false)}
                         className={classes(
                             'rounded-md px-3 py-2 text-sm font-medium',
-                            actif(item.href) ? 'bg-green-50 text-green-800' : 'text-slate-700 hover:bg-slate-100',
+                            actif(item.href) ? 'bg-white/15 text-white' : 'text-green-50/90 hover:bg-white/10 hover:text-white',
                         )}
                     >
                         {item.titre}
@@ -122,9 +123,9 @@ export default function AppLayout({ titre, actions, children }) {
     return (
         <div className="min-h-screen lg:flex">
             <Head title={titre} />
-            <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-                <div className="flex h-14 items-center border-b border-slate-200 px-5">
-                    <Link href="/" className="text-base font-semibold text-green-800">
+            <aside className="hidden w-60 shrink-0 bg-green-800 lg:flex lg:flex-col">
+                <div className="flex h-14 items-center border-b border-white/10 px-5">
+                    <Link href="/" className="text-base font-semibold text-white">
                         {app.nom}
                     </Link>
                 </div>
@@ -152,7 +153,7 @@ export default function AppLayout({ titre, actions, children }) {
                         </button>
                     </div>
                 </header>
-                {menuOuvert && <div className="border-b border-slate-200 bg-white lg:hidden">{menu}</div>}
+                {menuOuvert && <div className="bg-green-800 lg:hidden">{menu}</div>}
 
                 <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">
                     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

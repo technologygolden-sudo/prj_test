@@ -57,8 +57,9 @@ class TypeKitController extends Controller
 
         $type = DB::transaction(function () use ($donnees) {
             $type = TypeKit::create(collect($donnees)->except(['porteur_id', 'lignes'])->all());
-            $version = $type->versions()->create(['numero' => 1, 'article_porteur_id' => $donnees['porteur_id']]);
-            Nomenclature::enregistrer($version, $donnees['porteur_id'], $donnees['lignes'] ?? []);
+            $porteur = isset($donnees['porteur_id']) ? (int) $donnees['porteur_id'] : null;
+            $version = $type->versions()->create(['numero' => 1, 'article_porteur_id' => $porteur]);
+            Nomenclature::enregistrer($version, $porteur, $donnees['lignes'] ?? []);
             Audit::enregistrer('creer', $type, apres: $type->toArray());
             Audit::enregistrer('creer', $version, apres: Nomenclature::instantane($version));
 
@@ -86,7 +87,7 @@ class TypeKitController extends Controller
                 'verrouillee_le' => $v->verrouillee_le?->format('d/m/Y H:i'),
                 'verrouillee_par' => $v->verrouilleePar?->name,
                 'porteur_id' => $v->article_porteur_id,
-                'porteur' => $v->porteur->only(['id', 'reference', 'nom']),
+                'porteur' => $v->porteur?->only(['id', 'reference', 'nom']),
                 'lignes' => $v->articles
                     ->reject(fn (Article $a) => $a->id === $v->article_porteur_id)
                     ->sortBy('reference')->values()

@@ -74,6 +74,7 @@ function Version({ version, articles }) {
             {version.active && <Pastille couleur="vert">Active</Pastille>}
             {version.verrouillee && !version.active && <Pastille>Archivée</Pastille>}
             {brouillon && <Pastille couleur="orange">Brouillon</Pastille>}
+            {brouillon && !version.porteur_id && <Pastille couleur="rouge">Porteur à choisir</Pastille>}
         </span>
     );
 
@@ -81,8 +82,8 @@ function Version({ version, articles }) {
         <>
             {peut('kits.verrouiller') && (
                 <Bouton
-                    disabled={isDirty}
-                    title={isDirty ? 'Enregistrez d’abord la nomenclature' : undefined}
+                    disabled={isDirty || !version.porteur_id}
+                    title={isDirty ? 'Enregistrez d’abord la nomenclature' : !version.porteur_id ? 'Choisissez d’abord le porteur de série' : undefined}
                     onClick={() =>
                         confirm(`Verrouiller la version ${version.numero} ? Elle ne sera plus modifiable et deviendra la version active.`) &&
                         router.post(`/versions/${version.id}/verrouiller`, {}, { preserveScroll: true })
@@ -136,13 +137,21 @@ function Version({ version, articles }) {
                 </p>
             )}
             <Tableau colonnes={[{ libelle: 'Article' }, { libelle: 'Désignation' }, { libelle: 'Quantité', droite: true }]}>
-                <tr className="bg-green-50/50">
-                    <td className="px-5 py-2 font-medium">{version.porteur.reference}</td>
-                    <td className="px-5 py-2">
-                        {version.porteur.nom} <Pastille couleur="vert">Porteur de série</Pastille>
-                    </td>
-                    <td className="px-5 py-2 text-right tabular-nums">1</td>
-                </tr>
+                {version.porteur ? (
+                    <tr className="bg-green-50/50">
+                        <td className="px-5 py-2 font-medium">{version.porteur.reference}</td>
+                        <td className="px-5 py-2">
+                            {version.porteur.nom} <Pastille couleur="vert">Porteur de série</Pastille>
+                        </td>
+                        <td className="px-5 py-2 text-right tabular-nums">1</td>
+                    </tr>
+                ) : (
+                    <tr>
+                        <td colSpan={3} className="px-5 py-2">
+                            <Pastille couleur="orange">Porteur de série à choisir</Pastille>
+                        </td>
+                    </tr>
+                )}
                 {version.lignes.map((l) => (
                     <tr key={l.article_id}>
                         <td className="px-5 py-2 font-medium">{l.reference}</td>

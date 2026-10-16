@@ -13,15 +13,26 @@ export default function EditeurNomenclature({ articles, porteurId, lignes, onCha
 
     return (
         <div className="space-y-4">
-            <Champ libelle="Article porteur de série" htmlFor="porteur_id" erreur={erreurs.porteur_id} aide="Article sérialisé dont le kit reprendra le n° de série (quantité 1).">
+            <Champ
+                libelle="Article porteur de série"
+                htmlFor="porteur_id"
+                erreur={erreurs.porteur_id}
+                aide="Article sérialisé dont le kit reprendra le n° de série (quantité 1). Obligatoire pour verrouiller."
+            >
                 <Liste
                     id="porteur_id"
                     value={porteurId ?? ''}
-                    onChange={(e) => onChange({ porteurId: e.target.value, lignes })}
+                    onChange={(e) => {
+                        const choisi = e.target.value;
+                        const ancien = porteurId ? [{ article_id: Number(porteurId), quantite: 1 }] : [];
+                        // L'article choisi quitte les lignes ; l'ancien porteur y retourne avec la quantité 1.
+                        const reste = lignes.filter((l) => Number(l.article_id) !== Number(choisi));
+                        onChange({ porteurId: choisi || null, lignes: choisi === String(porteurId ?? '') ? lignes : [...ancien, ...reste] });
+                    }}
                     invalide={erreurs.porteur_id}
                     className="max-w-lg"
                 >
-                    <option value="">Choisir…</option>
+                    <option value="">Pas encore choisi</option>
                     {serialises.map((a) => (
                         <option key={a.id} value={a.id}>
                             {a.reference} — {a.nom}
