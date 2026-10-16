@@ -80,7 +80,7 @@ return new class extends Migration
 
         // RG05 : le porteur est sérialisé et présent avec la quantité 1.
         DB::unprepared(<<<'SQL'
-            CREATE FUNCTION verifier_porteur_version(p_version_id bigint) RETURNS void AS $$
+            CREATE OR REPLACE FUNCTION verifier_porteur_version(p_version_id bigint) RETURNS void AS $$
             DECLARE
                 v_porteur bigint;
                 v_quantite integer;
@@ -100,7 +100,7 @@ return new class extends Migration
             END;
             $$ LANGUAGE plpgsql;
 
-            CREATE FUNCTION trg_version_kit_porteur() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_version_kit_porteur() RETURNS trigger AS $$
             BEGIN
                 PERFORM verifier_porteur_version(NEW.id);
                 RETURN NULL;
@@ -112,7 +112,7 @@ return new class extends Migration
                 DEFERRABLE INITIALLY DEFERRED
                 FOR EACH ROW EXECUTE FUNCTION trg_version_kit_porteur();
 
-            CREATE FUNCTION trg_composition_porteur() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_composition_porteur() RETURNS trigger AS $$
             BEGIN
                 PERFORM verifier_porteur_version(NEW.version_kit_id);
                 RETURN NULL;
@@ -124,7 +124,7 @@ return new class extends Migration
                 DEFERRABLE INITIALLY DEFERRED
                 FOR EACH ROW EXECUTE FUNCTION trg_composition_porteur();
 
-            CREATE FUNCTION trg_article_serialisation() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_article_serialisation() RETURNS trigger AS $$
             BEGIN
                 IF OLD.est_serialise AND NOT NEW.est_serialise
                    AND EXISTS (SELECT 1 FROM version_kit WHERE article_porteur_id = NEW.id) THEN
@@ -142,7 +142,7 @@ return new class extends Migration
 
         // RG10 : une version verrouillée et sa composition ne sont plus modifiables.
         DB::unprepared(<<<'SQL'
-            CREATE FUNCTION trg_version_kit_verrou() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_version_kit_verrou() RETURNS trigger AS $$
             BEGIN
                 IF OLD.verrouillee THEN
                     RAISE EXCEPTION 'RG10 : la version % est verrouillée', OLD.id
@@ -159,7 +159,7 @@ return new class extends Migration
                 BEFORE UPDATE OR DELETE ON version_kit
                 FOR EACH ROW EXECUTE FUNCTION trg_version_kit_verrou();
 
-            CREATE FUNCTION trg_composition_verrou() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_composition_verrou() RETURNS trigger AS $$
             DECLARE
                 v_version bigint;
             BEGIN

@@ -51,7 +51,7 @@ return new class extends Migration
 
         // RG04 + RG07 : la nature suit l'article et le fabricant est recopié pour l'unicité du n° de série.
         DB::unprepared(<<<'SQL'
-            CREATE FUNCTION trg_unite_article_fabricant() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_unite_article_fabricant() RETURNS trigger AS $$
             DECLARE
                 v_serialise boolean;
                 v_fabricant bigint;
@@ -102,7 +102,7 @@ return new class extends Migration
 
         // RG06 : le kit reprend le n° de série de son porteur.
         DB::unprepared(<<<'SQL'
-            CREATE FUNCTION trg_kit_assemble_serie() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_kit_assemble_serie() RETURNS trigger AS $$
             BEGIN
                 SELECT numero_serie INTO NEW.numero_serie FROM unite_article WHERE id = NEW.unite_porteur_id;
                 IF NEW.numero_serie IS NULL THEN

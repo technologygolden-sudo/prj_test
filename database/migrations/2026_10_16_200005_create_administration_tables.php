@@ -39,7 +39,7 @@ return new class extends Migration
 
         // ENF05 : aucune modification ni suppression, pour personne.
         DB::unprepared(<<<'SQL'
-            CREATE FUNCTION trg_journal_audit_ajout_seul() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION trg_journal_audit_ajout_seul() RETURNS trigger AS $$
             BEGIN
                 RAISE EXCEPTION 'ENF05 : le journal d''audit est en ajout seul'
                     USING ERRCODE = 'insufficient_privilege';
