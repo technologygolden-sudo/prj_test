@@ -16,6 +16,9 @@ class AccueilController extends Controller
                 'types_kit' => DB::table('type_kit')->count(),
                 'brouillons' => DB::table('version_kit')->where('verrouillee', false)->count(),
                 'unites_en_stock' => DB::table('unite_article')->where('statut', 'en_stock')->count(),
+                'kits_assembles' => DB::table('kit_assemble')->where('statut', 'assemble')->count(),
+                'a_imprimer' => DB::table('unite_article')->where('statut', 'en_stock')
+                    ->whereNotExists(fn ($q) => $q->from('impression_etiquette')->whereColumn('unite_id', 'unite_article.id'))->count(),
             ],
         ]);
     }

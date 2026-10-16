@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\AccueilController;
+use App\Http\Controllers\Admin\AuditController;
+use App\Http\Controllers\Admin\ParametreController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UtilisateurController;
 use App\Http\Controllers\Compte\SecuriteController;
 use App\Http\Controllers\Referentiel\ArticleController;
@@ -8,6 +11,15 @@ use App\Http\Controllers\Referentiel\CategorieController;
 use App\Http\Controllers\Referentiel\FabricantController;
 use App\Http\Controllers\Referentiel\TypeKitController;
 use App\Http\Controllers\Referentiel\VersionKitController;
+use App\Http\Controllers\Simulation\CapaciteController;
+use App\Http\Controllers\Simulation\SimulationController;
+use App\Http\Controllers\Stock\AssemblageController;
+use App\Http\Controllers\Stock\EtiquetteController;
+use App\Http\Controllers\Stock\KitAssembleController;
+use App\Http\Controllers\Stock\ReceptionController;
+use App\Http\Controllers\Stock\RechercheController;
+use App\Http\Controllers\Stock\SortieController;
+use App\Http\Controllers\Stock\UniteController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -22,7 +34,13 @@ Route::middleware('auth')->group(function () {
             Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
             Route::get('/kits', [TypeKitController::class, 'index'])->name('kits.index');
             Route::get('/kits/{kit}', [TypeKitController::class, 'show'])->name('kits.show')->whereNumber('kit');
+            Route::get('/stock', [UniteController::class, 'index'])->name('stock.index');
+            Route::get('/stock/{unite}', [UniteController::class, 'show'])->name('stock.show')->whereNumber('unite');
+            Route::get('/kits-assembles', [KitAssembleController::class, 'index'])->name('kits-assembles.index');
+            Route::get('/kits-assembles/{kit}', [KitAssembleController::class, 'show'])->name('kits-assembles.show')->whereNumber('kit');
         });
+
+        Route::get('/recherche', RechercheController::class)->middleware('permission:recherche.scanner')->name('recherche');
 
         Route::middleware('permission:articles.gerer')->group(function () {
             Route::get('/categories', [CategorieController::class, 'index'])->name('categories.index');
@@ -56,6 +74,50 @@ Route::middleware('auth')->group(function () {
         Route::post('/versions/{version}/verrouiller', [VersionKitController::class, 'verrouiller'])
             ->middleware('permission:kits.verrouiller')->name('versions.verrouiller');
 
+        // Stock
+        Route::middleware('permission:reception.creer')->group(function () {
+            Route::get('/receptions', [ReceptionController::class, 'index'])->name('receptions.index');
+            Route::get('/receptions/nouvelle', [ReceptionController::class, 'create'])->name('receptions.create');
+            Route::post('/receptions', [ReceptionController::class, 'store'])->name('receptions.store');
+            Route::get('/receptions/{reception}', [ReceptionController::class, 'show'])->name('receptions.show')->whereNumber('reception');
+        });
+
+        Route::middleware('permission:stock.sortir')->group(function () {
+            Route::get('/sorties', [SortieController::class, 'index'])->name('sorties.index');
+            Route::get('/sorties/nouvelle', [SortieController::class, 'create'])->name('sorties.create');
+            Route::post('/sorties/verifier', [SortieController::class, 'verifier'])->name('sorties.verifier');
+            Route::post('/sorties', [SortieController::class, 'store'])->name('sorties.store');
+        });
+
+        Route::post('/stock/{unite}/ajuster', [UniteController::class, 'ajuster'])
+            ->middleware('permission:stock.ajuster')->name('stock.ajuster');
+
+        Route::middleware('permission:assemblage.realiser')->group(function () {
+            Route::get('/assemblage', [AssemblageController::class, 'create'])->name('assemblage.create');
+            Route::post('/assemblage/verifier', [AssemblageController::class, 'verifier'])->name('assemblage.verifier');
+            Route::post('/assemblage', [AssemblageController::class, 'store'])->name('assemblage.store');
+        });
+
+        Route::post('/kits-assembles/{kit}/desassembler', [KitAssembleController::class, 'desassembler'])
+            ->middleware('permission:assemblage.annuler')->name('kits-assembles.desassembler');
+
+        Route::post('/etiquettes/imprimer', [EtiquetteController::class, 'imprimer'])
+            ->middleware('permission:etiquettes.imprimer')->name('etiquettes.imprimer');
+
+        // Simulation
+        Route::get('/capacite', CapaciteController::class)->middleware('permission:capacite.consulter')->name('capacite');
+
+        Route::middleware('permission:simulation.lancer')->group(function () {
+            Route::get('/simulations', [SimulationController::class, 'index'])->name('simulations.index');
+            Route::get('/simulations/nouvelle', [SimulationController::class, 'create'])->name('simulations.create');
+            Route::post('/simulations', [SimulationController::class, 'store'])->name('simulations.store');
+            Route::get('/simulations/{simulation}', [SimulationController::class, 'show'])->name('simulations.show')->whereNumber('simulation');
+        });
+
+        Route::get('/simulations/{simulation}/export/{format}', [SimulationController::class, 'exporter'])
+            ->middleware('permission:simulation.exporter')->whereNumber('simulation')->whereIn('format', ['csv', 'pdf', 'achats'])
+            ->name('simulations.exporter');
+
         // Administration
         Route::middleware('permission:utilisateurs.gerer')->group(function () {
             Route::get('/admin/utilisateurs', [UtilisateurController::class, 'index'])->name('utilisateurs.index');
@@ -63,6 +125,26 @@ Route::middleware('auth')->group(function () {
             Route::put('/admin/utilisateurs/{utilisateur}', [UtilisateurController::class, 'update'])->name('utilisateurs.update');
             Route::post('/admin/utilisateurs/{utilisateur}/reinitialiser-mfa', [UtilisateurController::class, 'reinitialiserMfa'])
                 ->name('utilisateurs.reinitialiser-mfa');
+        });
+
+        Route::middleware('permission:roles.gerer')->group(function () {
+            Route::get('/admin/roles', [RoleController::class, 'index'])->name('roles.index');
+            Route::post('/admin/roles', [RoleController::class, 'store'])->name('roles.store');
+            Route::put('/admin/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+            Route::delete('/admin/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+        });
+
+        Route::middleware('permission:parametres.gerer')->group(function () {
+            Route::get('/admin/parametres', [ParametreController::class, 'index'])->name('parametres.index');
+            Route::put('/admin/parametres/societe', [ParametreController::class, 'societe'])->name('parametres.societe');
+            Route::post('/admin/imprimantes', [ParametreController::class, 'enregistrerImprimante'])->name('imprimantes.store');
+            Route::put('/admin/imprimantes/{imprimante}', [ParametreController::class, 'enregistrerImprimante'])->name('imprimantes.update');
+            Route::put('/admin/modeles/{modele}', [ParametreController::class, 'modele'])->name('modeles.update');
+        });
+
+        Route::middleware('permission:audit.consulter')->group(function () {
+            Route::get('/admin/audit', [AuditController::class, 'index'])->name('audit.index');
+            Route::get('/admin/audit/export', [AuditController::class, 'exporter'])->name('audit.exporter');
         });
     });
 });

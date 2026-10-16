@@ -8,12 +8,14 @@ export default function Accueil({ compteurs }) {
         { libelle: 'Articles', valeur: compteurs.articles, href: '/articles', permission: 'articles.voir' },
         { libelle: 'Types de kit', valeur: compteurs.types_kit, href: '/kits', permission: 'articles.voir' },
         { libelle: 'Versions en brouillon', valeur: compteurs.brouillons, href: '/kits', permission: 'articles.voir' },
-        { libelle: 'Unités en stock', valeur: compteurs.unites_en_stock, href: null, permission: null },
+        { libelle: 'Unités en stock', valeur: compteurs.unites_en_stock, href: '/stock', permission: 'articles.voir' },
+        { libelle: 'Kits assemblés en stock', valeur: compteurs.kits_assembles, href: '/kits-assembles', permission: 'articles.voir' },
+        { libelle: 'Étiquettes à imprimer', valeur: compteurs.a_imprimer, href: '/stock', permission: 'articles.voir' },
     ];
 
     return (
         <AppLayout titre="Accueil">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {tuiles.map((t) => {
                     const contenu = (
                         <>
@@ -33,9 +35,6 @@ export default function Accueil({ compteurs }) {
                     );
                 })}
             </div>
-            <p className="mt-6 text-sm text-slate-500">
-                Réception, assemblage, étiquettes et simulation arrivent dans les prochaines étapes du plan.
-            </p>
         </AppLayout>
     );
 }

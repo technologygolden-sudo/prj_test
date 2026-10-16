@@ -23,5 +23,16 @@ class DatabaseSeeder extends Seeder
             'nom_societe' => 'GREENO',
             'num_sav' => '07 06 24 87 24',
         ]);
+
+        // Modèles d'étiquette 50 × 30 mm (dossier v2, section 6) : dimensions et résolution réglables, jamais de ZPL libre.
+        foreach (['article', 'lot', 'kit'] as $cible) {
+            foreach (['ZPL', 'PDF'] as $format) {
+                DB::table('modele_etiquette')->insertOrIgnore([
+                    'code' => strtolower("{$cible}-{$format}-50x30"), 'cible' => $cible, 'format' => $format,
+                    'largeur_mm' => 50, 'hauteur_mm' => 30, 'dpi' => 203, 'gabarit' => 'standard-v2',
+                    'actif' => true, 'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+        }
     }
 }

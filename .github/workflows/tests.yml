@@ -1,0 +1,72 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  laravel:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gestion_kits_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: gestion_kits_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql, mbstring, intl, sodium, gd
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Dépendances
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+      - name: Analyse des dépendances (ENF08)
+        run: |
+          composer audit
+          npm audit --audit-level=high
+      - name: Compilation de l'interface
+        run: npm run build
+      - name: Configuration
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+      - name: Tests
+        run: php artisan test
+
+  optimiseur:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: optimiseur
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: optimiseur/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q

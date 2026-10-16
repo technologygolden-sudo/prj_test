@@ -4,14 +4,52 @@ import { classes, usePeut } from '../Components/ui';
 
 const navigation = [
     { titre: 'Accueil', href: '/', permission: null },
+    { section: 'Atelier et magasin' },
+    { titre: 'Réceptions', href: '/receptions', permission: 'reception.creer' },
+    { titre: 'Assemblage', href: '/assemblage', permission: 'assemblage.realiser' },
+    { titre: 'Sorties', href: '/sorties', permission: 'stock.sortir' },
+    { titre: 'Stock', href: '/stock', permission: 'articles.voir' },
+    { titre: 'Kits assemblés', href: '/kits-assembles', permission: 'articles.voir' },
     { section: 'Référentiel' },
     { titre: 'Articles', href: '/articles', permission: 'articles.voir' },
     { titre: 'Types de kit', href: '/kits', permission: 'articles.voir' },
     { titre: 'Catégories', href: '/categories', permission: 'articles.gerer' },
     { titre: 'Fabricants', href: '/fabricants', permission: 'articles.gerer' },
+    { section: 'Planification' },
+    { titre: 'Capacité', href: '/capacite', permission: 'capacite.consulter' },
+    { titre: 'Simulations', href: '/simulations', permission: 'simulation.lancer' },
     { section: 'Administration' },
     { titre: 'Utilisateurs', href: '/admin/utilisateurs', permission: 'utilisateurs.gerer' },
+    { titre: 'Rôles et permissions', href: '/admin/roles', permission: 'roles.gerer' },
+    { titre: 'Paramètres', href: '/admin/parametres', permission: 'parametres.gerer' },
+    { titre: 'Journal d’audit', href: '/admin/audit', permission: 'audit.consulter' },
 ];
+
+function RechercheRapide() {
+    const [q, setQ] = useState('');
+    return (
+        <form
+            role="search"
+            className="hidden sm:block"
+            onSubmit={(e) => {
+                e.preventDefault();
+                if (q.trim()) {
+                    router.get('/recherche', { q: q.trim() });
+                    setQ('');
+                }
+            }}
+        >
+            <input
+                type="search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Scanner ou saisir un UID, n° de série…"
+                aria-label="Recherche par scan"
+                className="w-72 rounded-md border-0 bg-slate-100 px-3 py-1.5 text-sm ring-1 ring-slate-200 focus:bg-white focus:ring-2 focus:ring-green-600"
+            />
+        </form>
+    );
+}
 
 function Messages() {
     const { flash, errors } = usePage().props;
@@ -104,6 +142,7 @@ export default function AppLayout({ titre, actions, children }) {
                         Menu
                     </button>
                     <span className="truncate text-sm text-slate-500 lg:hidden">{app.nom}</span>
+                    {peut('recherche.scanner') && <RechercheRapide />}
                     <div className="ml-auto flex items-center gap-3 text-sm">
                         <Link href="/compte/securite" className="text-slate-700 hover:text-slate-900">
                             {auth.user.name}

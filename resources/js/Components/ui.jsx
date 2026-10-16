@@ -17,13 +17,17 @@ const styles = {
     discret: 'text-slate-600 hover:text-slate-900 hover:bg-slate-100',
 };
 
-export function Bouton({ variante = 'primaire', className, href, ...props }) {
+export function Bouton({ variante = 'primaire', className, href, externe = false, ...props }) {
     const cls = classes(
         'inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition',
         'focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
         styles[variante],
         className,
     );
+    if (href && externe) {
+        // Téléchargement (CSV, PDF) : lien classique, hors navigation Inertia.
+        return <a href={href} className={cls} {...props} />;
+    }
     if (href) {
         return <Link href={href} className={cls} {...props} />;
     }
@@ -88,6 +92,30 @@ export function Pastille({ couleur = 'gris', children }) {
             {children}
         </span>
     );
+}
+
+const libellesStatut = {
+    en_stock: ['En stock', 'vert'],
+    assemble: ['Assemblé', 'gris'],
+    epuise: ['Épuisé', 'gris'],
+    expedie: ['Expédié', 'gris'],
+    rebute: ['Rebuté', 'rouge'],
+    retourne: ['Retourné', 'orange'],
+    perdu: ['Perdu', 'rouge'],
+    desassemble: ['Désassemblé', 'orange'],
+};
+
+export function Statut({ valeur }) {
+    const [libelle, couleur] = libellesStatut[valeur] ?? [valeur, 'gris'];
+    return <Pastille couleur={couleur}>{libelle}</Pastille>;
+}
+
+export function dateFr(valeur, heure = true) {
+    if (!valeur) {
+        return '—';
+    }
+    const d = new Date(String(valeur).replace(' ', 'T'));
+    return heure ? d.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : d.toLocaleDateString('fr-FR');
 }
 
 export function Tableau({ colonnes, children, vide }) {
