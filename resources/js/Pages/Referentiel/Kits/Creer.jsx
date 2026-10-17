@@ -11,13 +11,14 @@ export default function Creer({ categories, fabricants, articles }) {
         nom: '',
         categorie_id: '',
         fabricant_id: '',
+        cout_unitaire: '',
         porteur_id: '',
         lignes: [],
     });
 
     const envoyer = (e) => {
         e.preventDefault();
-        transform((d) => ({ ...d, categorie_id: d.categorie_id || null, fabricant_id: d.fabricant_id || null }));
+        transform((d) => ({ ...d, categorie_id: d.categorie_id || null, fabricant_id: d.fabricant_id || null, cout_unitaire: d.cout_unitaire === '' ? null : d.cout_unitaire }));
         post('/kits');
     };
 

@@ -191,7 +191,7 @@ class ImportReferentiel
                     'est_serialise' => (bool) $a['est_serialise'],
                     'fabricant_id' => $fabricant($a['fabricant']),
                     'categorie_id' => $categorie($a['categorie']),
-                ];
+                ] + ($a['cout'] !== null ? ['cout_unitaire' => $a['cout']] : []);
                 $existant = DB::table('article')->whereRaw('upper(reference) = ?', [Str::upper($a['reference'])])->first();
                 if (! $existant) {
                     $idsArticles[$a['reference']] = DB::table('article')->insertGetId($valeurs + ['reference' => $a['reference'], 'created_at' => now(), 'updated_at' => now()]);
@@ -203,7 +203,8 @@ class ImportReferentiel
                     $valeurs['est_serialise'] = true; // RG05
                     $bilan['serialisation_conservee']++;
                 }
-                $avant = ['nom' => $existant->nom, 'est_serialise' => (bool) $existant->est_serialise, 'fabricant_id' => $existant->fabricant_id, 'categorie_id' => $existant->categorie_id];
+                $avant = ['nom' => $existant->nom, 'est_serialise' => (bool) $existant->est_serialise, 'fabricant_id' => $existant->fabricant_id, 'categorie_id' => $existant->categorie_id]
+                    + ($a['cout'] !== null ? ['cout_unitaire' => $existant->cout_unitaire === null ? null : (float) $existant->cout_unitaire] : []);
                 if ($avant != $valeurs) {
                     DB::table('article')->where('id', $existant->id)->update($valeurs + ['updated_at' => now()]);
                     $bilan['articles_modifies']++;
@@ -341,6 +342,8 @@ class ImportReferentiel
                 'categorie' => $valeurs['categorie'] ?? '',
                 'produits associes' => $valeurs['produits associes'] ?? '',
                 'parts' => isset($valeurs['parts']) && $valeurs['parts'] !== '' ? (int) $valeurs['parts'] : null,
+                // Colonne facultative « Coût unitaire » (FCFA), pour la valorisation des inventaires.
+                'cout' => isset($valeurs['cout unitaire']) && is_numeric(str_replace([' ', ','], ['', '.'], $valeurs['cout unitaire'])) ? (float) str_replace([' ', ','], ['', '.'], $valeurs['cout unitaire']) : null,
             ];
         }
 

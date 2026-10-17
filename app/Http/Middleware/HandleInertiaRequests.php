@@ -32,6 +32,8 @@ class HandleInertiaRequests extends Middleware
                 // Sert à masquer les boutons ; le contrôle réel reste côté serveur (RG22).
                 'permissions' => $user ? $user->getAllPermissions()->pluck('name') : [],
             ],
+            // Suggestions des champs (types d'article, motifs, techniciens), gérées dans Référentiel › Listes de valeurs.
+            'listes' => fn () => $user ? \App\Http\Controllers\Referentiel\ListeValeurController::partagees() : [],
             'flash' => [
                 'succes' => fn () => $request->session()->get('succes'),
                 'alerte' => fn () => $request->session()->get('alerte'),

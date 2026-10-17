@@ -9,7 +9,10 @@ export default function ChampsTypeKit({ data, setData, errors, categories, fabri
             <Champ libelle="PartNo" htmlFor="partno" erreur={errors.partno}>
                 <Saisie id="partno" value={data.partno} onChange={(e) => setData('partno', e.target.value)} invalide={errors.partno} />
             </Champ>
-            <Champ libelle="Nom" htmlFor="nom" erreur={errors.nom} className="sm:col-span-2">
+            <Champ libelle="Coût unitaire (FCFA)" htmlFor="cout_unitaire" erreur={errors.cout_unitaire} aide="Facultatif : à défaut, somme des coûts des articles.">
+                <Saisie id="cout_unitaire" type="number" min={0} step="1" value={data.cout_unitaire ?? ''} onChange={(e) => setData('cout_unitaire', e.target.value)} />
+            </Champ>
+            <Champ libelle="Nom" htmlFor="nom" erreur={errors.nom}>
                 <Saisie id="nom" value={data.nom} onChange={(e) => setData('nom', e.target.value)} invalide={errors.nom} />
             </Champ>
             <Champ libelle="Catégorie" htmlFor="categorie_id" erreur={errors.categorie_id}>

@@ -170,8 +170,8 @@ class EmplacementsTest extends TestCase
         $ligneA = DB::table('transfert_ligne')->where('unite_id', $a->id)->value('id');
         $shopDivo = User::where('login', 'centre.demo')->firstOrFail();
 
-        // Seul un utilisateur du site d'arrivée valide la réception (RG33).
-        $this->actingAs($this->admin)->post("/transferts/{$transfert->id}/recevoir", ['arrivees' => [$ligneA => $vente]])->assertSessionHas('alerte');
+        // Seul un utilisateur du site d'arrivée (ou l'administrateur) valide la réception (RG33).
+        $this->actingAs(User::where('login', 'magasin.demo')->first())->post("/transferts/{$transfert->id}/recevoir", ['arrivees' => [$ligneA => $vente]])->assertSessionHas('alerte');
         // Un emplacement d'un autre site est refusé.
         $this->actingAs($shopDivo)->post("/transferts/{$transfert->id}/recevoir", ['arrivees' => [$ligneA => $this->emplacement('shop')]])->assertSessionHasErrors('lignes');
 

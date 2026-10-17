@@ -1,7 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { soumettreDansOnglet } from './http';
-import { Bouton, Champ, Liste, Saisie, usePeut } from './ui';
+import { Bouton, Champ, Liste, Saisie, Suggestions, usePeut } from './ui';
 
 /**
  * Impression d'étiquettes (EF04, EF06) : ZPL envoyé à la Zebra, ou PDF ouvert dans un nouvel onglet.
@@ -54,7 +54,8 @@ export default function PanneauImpression({ cibles, imprimantes, dejaImprime = f
             </Champ>
             {dejaImprime && (
                 <Champ libelle="Motif de réimpression" erreur={errors.motif} className="min-w-56 flex-1">
-                    <Saisie value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Étiquette abîmée, illisible…" />
+                    <Saisie list="liste-motif_reimpression" value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Étiquette abîmée, illisible…" />
+                    <Suggestions liste="motif_reimpression" />
                 </Champ>
             )}
             <Bouton onClick={imprimer} disabled={envoi || (dejaImprime && motif.trim().length < 3)}>

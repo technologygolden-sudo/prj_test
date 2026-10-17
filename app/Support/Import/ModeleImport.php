@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  */
 class ModeleImport
 {
-    public const ARTICLES = ['Catégorie', 'Nom', 'Type', 'Fabricant', 'Référence', 'Produits associés'];
+    public const ARTICLES = ['Catégorie', 'Nom', 'Type', 'Fabricant', 'Référence', 'Produits associés', 'Coût unitaire'];
 
     public const KITS = ['Catégorie', 'Nom', 'Fabricant', 'Verrouillable', 'Référence', 'Parts'];
 
@@ -26,8 +26,8 @@ class ModeleImport
         $articles = $classeur->getActiveSheet()->setTitle('products_parts');
         $this->entete($articles, self::ARTICLES);
         $articles->fromArray([
-            ['Part', 'N°1 Spark Battery 42 wh', 'Sérialisé', 'Spark', 'BAT-SPK-1-01', 'TEVIA ECO, TEVIA CLASSIC'],
-            ['Part', 'Spark 2M cable', 'Non sérialisé', 'Spark', 'CBL-SD2-1-02', 'TEVIA ECO'],
+            ['Part', 'N°1 Spark Battery 42 wh', 'Sérialisé', 'Spark', 'BAT-SPK-1-01', 'TEVIA ECO, TEVIA CLASSIC', 45000],
+            ['Part', 'Spark 2M cable', 'Non sérialisé', 'Spark', 'CBL-SD2-1-02', 'TEVIA ECO', 1500],
         ], null, 'A2');
         $this->listeDeroulante($articles, 'C2:C5000', '"Sérialisé,Non sérialisé"');
 
@@ -48,6 +48,7 @@ class ModeleImport
             ['products_parts', 'Fabricant', 'Oui si sérialisé', 'Le n° de série est unique par fabricant.'],
             ['products_parts', 'Référence', 'Oui', 'Unique, 64 caractères au plus. Sert à retrouver l’article lors des imports suivants.'],
             ['products_parts', 'Produits associés', 'Non', 'Noms des kits qui contiennent l’article, séparés par des virgules (quantité 1).'],
+            ['products_parts', 'Coût unitaire', 'Non', 'Coût en FCFA, utilisé pour valoriser les écarts d’inventaire.'],
             ['products_serialized', 'Catégorie', 'Non', 'Catégorie du kit.'],
             ['products_serialized', 'Nom', 'Oui', 'Nom du kit, tel qu’il est écrit dans « Produits associés ».'],
             ['products_serialized', 'Fabricant', 'Non', 'Fabricant du kit.'],

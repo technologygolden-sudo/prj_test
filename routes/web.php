@@ -10,6 +10,7 @@ use App\Http\Controllers\Referentiel\ArticleController;
 use App\Http\Controllers\Referentiel\CategorieController;
 use App\Http\Controllers\Referentiel\FabricantController;
 use App\Http\Controllers\Referentiel\ImportController;
+use App\Http\Controllers\Referentiel\ListeValeurController;
 use App\Http\Controllers\Referentiel\TypeKitController;
 use App\Http\Controllers\Referentiel\VersionKitController;
 use App\Http\Controllers\Simulation\CapaciteController;
@@ -48,6 +49,11 @@ Route::middleware('auth')->group(function () {
             Route::post('/categories', [CategorieController::class, 'store'])->name('categories.store');
             Route::put('/categories/{categorie}', [CategorieController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{categorie}', [CategorieController::class, 'destroy'])->name('categories.destroy');
+
+            Route::get('/listes', [ListeValeurController::class, 'index'])->name('listes.index');
+            Route::post('/listes', [ListeValeurController::class, 'store'])->name('listes.store');
+            Route::put('/listes/{valeur}', [ListeValeurController::class, 'update'])->name('listes.update');
+            Route::delete('/listes/{valeur}', [ListeValeurController::class, 'destroy'])->name('listes.destroy');
 
             Route::get('/fabricants', [FabricantController::class, 'index'])->name('fabricants.index');
             Route::post('/fabricants', [FabricantController::class, 'store'])->name('fabricants.store');
@@ -111,6 +117,7 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:assemblage.annuler')->name('kits-assembles.desassembler');
 
         require __DIR__.'/emplacements.php';
+        require __DIR__.'/inventaires.php';
 
         Route::post('/etiquettes/imprimer', [EtiquetteController::class, 'imprimer'])
             ->middleware('permission:etiquettes.imprimer')->name('etiquettes.imprimer');

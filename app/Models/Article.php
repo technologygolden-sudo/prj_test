@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Table('article')]
-#[Fillable(['reference', 'nom', 'type', 'est_serialise', 'categorie_id', 'fabricant_id'])]
+#[Fillable(['reference', 'nom', 'type', 'est_serialise', 'categorie_id', 'fabricant_id', 'cout_unitaire'])]
 class Article extends Model
 {
     protected function casts(): array

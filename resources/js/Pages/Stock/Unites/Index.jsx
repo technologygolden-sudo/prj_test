@@ -2,7 +2,6 @@ import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppLayout from '../../../Layouts/AppLayout';
 import PanneauImpression from '../../../Components/PanneauImpression';
-import { EtatPastille } from '../../../Components/ActionsElement';
 import { Bouton, Carte, Liste, Pagination, Pastille, Saisie, Statut, Tableau, classes } from '../../../Components/ui';
 
 const statuts = [
@@ -16,165 +15,188 @@ const statuts = [
     ['perdu', 'Perdu'],
 ];
 
+const vues = [
+    ['liste', 'Liste'],
+    ['articles', 'Par article'],
+    ['sites', 'Par site'],
+];
+
+/** Une seule ligne : recherche + site ; les autres filtres derrière « Filtres ». */
 function Filtres({ filtres, sites, emplacements, vue }) {
     const [q, setQ] = useState(filtres.q ?? '');
+    const avances = ['emplacement', 'proprietaire', 'etat', 'statut'].filter((c) => filtres[c]).length;
+    const [ouvert, setOuvert] = useState(avances > 0);
     const filtrer = (changements) =>
-        router.get('/stock', { ...filtres, q: q || undefined, vue: vue === 'sites' ? 'sites' : undefined, ...changements, page: undefined }, { preserveState: true, replace: true });
+        router.get('/stock', { ...filtres, q: q || undefined, vue: vue === 'liste' ? undefined : vue, ...changements, page: undefined }, { preserveState: true, replace: true });
 
     return (
-        <form
-            className="mb-4 flex flex-wrap gap-3"
-            onSubmit={(e) => {
-                e.preventDefault();
-                filtrer({});
-            }}
-        >
-            {vue === 'liste' && <Saisie type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="UID, n° de série, article" className="max-w-xs" aria-label="Rechercher" />}
-            <Liste value={filtres.site ?? ''} onChange={(e) => filtrer({ site: e.target.value || undefined, emplacement: undefined })} className="max-w-56" aria-label="Site">
-                <option value="">Tous les sites</option>
-                {sites.map((s) => (
-                    <option key={s.id} value={s.id}>
-                        {s.nom}
-                    </option>
-                ))}
-            </Liste>
-            {vue === 'liste' && (
-                <Liste value={filtres.emplacement ?? ''} onChange={(e) => filtrer({ emplacement: e.target.value || undefined })} className="max-w-64" aria-label="Emplacement">
-                    <option value="">Tous les emplacements</option>
-                    {emplacements.map((e) => (
-                        <option key={e.id} value={e.id}>
-                            {filtres.site ? e.nom : e.libelle}
+        <div className="mb-4">
+            <form
+                className="flex flex-wrap items-center gap-2"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    filtrer({});
+                }}
+            >
+                <Saisie type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher : n° de série, UID, article…" className="max-w-sm flex-1" aria-label="Rechercher" />
+                <Liste value={filtres.site ?? ''} onChange={(e) => filtrer({ site: e.target.value || undefined, emplacement: undefined })} className="max-w-60" aria-label="Site">
+                    <option value="">Tous les sites</option>
+                    {sites.map((s) => (
+                        <option key={s.id} value={s.id}>
+                            {s.nom}
                         </option>
                     ))}
                 </Liste>
-            )}
-            <Liste value={filtres.proprietaire ?? ''} onChange={(e) => filtrer({ proprietaire: e.target.value || undefined })} className="max-w-40" aria-label="Propriétaire">
-                <option value="">GREENO et TEVIA</option>
-                <option value="GREENO">GREENO</option>
-                <option value="TEVIA">TEVIA</option>
-            </Liste>
-            <Liste value={filtres.etat ?? ''} onChange={(e) => filtrer({ etat: e.target.value || undefined })} className="max-w-40" aria-label="État">
-                <option value="">Tous états</option>
-                <option value="bon">Bon état</option>
-                <option value="defectueux">Défectueux</option>
-            </Liste>
-            {vue === 'liste' && (
-                <Liste value={filtres.statut ?? ''} onChange={(e) => filtrer({ statut: e.target.value || undefined })} className="max-w-44" aria-label="Statut">
-                    <option value="">Tous statuts</option>
-                    {statuts.map(([v, l]) => (
-                        <option key={v} value={v}>
-                            {l}
-                        </option>
-                    ))}
-                </Liste>
-            )}
-            {vue === 'liste' && (
-                <Bouton type="submit" variante="secondaire">
-                    Rechercher
+                <Bouton variante="secondaire" onClick={() => setOuvert(!ouvert)} aria-expanded={ouvert}>
+                    Filtres{avances > 0 ? ` (${avances})` : ''}
                 </Bouton>
+                {avances > 0 && (
+                    <Bouton variante="discret" onClick={() => filtrer({ emplacement: undefined, proprietaire: undefined, etat: undefined, statut: undefined })}>
+                        Effacer
+                    </Bouton>
+                )}
+            </form>
+            {ouvert && (
+                <div className="mt-2 flex flex-wrap gap-2 rounded-md bg-slate-50 p-2 ring-1 ring-slate-200">
+                    <Liste value={filtres.emplacement ?? ''} onChange={(e) => filtrer({ emplacement: e.target.value || undefined })} className="max-w-64" aria-label="Emplacement">
+                        <option value="">Tous les emplacements</option>
+                        {emplacements.map((e) => (
+                            <option key={e.id} value={e.id}>
+                                {filtres.site ? e.nom : e.libelle}
+                            </option>
+                        ))}
+                    </Liste>
+                    <Liste value={filtres.proprietaire ?? ''} onChange={(e) => filtrer({ proprietaire: e.target.value || undefined })} className="max-w-44" aria-label="Propriétaire">
+                        <option value="">GREENO et TEVIA</option>
+                        <option value="GREENO">GREENO</option>
+                        <option value="TEVIA">TEVIA</option>
+                    </Liste>
+                    <Liste value={filtres.etat ?? ''} onChange={(e) => filtrer({ etat: e.target.value || undefined })} className="max-w-40" aria-label="État">
+                        <option value="">Tous états</option>
+                        <option value="bon">Bon état</option>
+                        <option value="defectueux">Défectueux</option>
+                    </Liste>
+                    <Liste value={filtres.statut ?? ''} onChange={(e) => filtrer({ statut: e.target.value || undefined })} className="max-w-48" aria-label="Statut">
+                        <option value="">Tous statuts</option>
+                        {statuts.map(([v, l]) => (
+                            <option key={v} value={v}>
+                                {l}
+                            </option>
+                        ))}
+                    </Liste>
+                </div>
             )}
-        </form>
+        </div>
     );
 }
 
-function VueListe({ unites, synthese, imprimantes }) {
+function VueListe({ unites, imprimantes, unSite }) {
     const [selection, setSelection] = useState([]);
     const tous = unites.data.map((u) => u.id);
     const basculer = (id) => setSelection(selection.includes(id) ? selection.filter((x) => x !== id) : [...selection, id]);
     const choisies = unites.data.filter((u) => selection.includes(u.id));
 
     return (
-        <div className="grid gap-6 lg:grid-cols-3">
-            <Carte titre="Disponible par article" className="lg:order-2">
-                {synthese.length === 0 ? (
-                    <p className="text-sm text-slate-500">Aucune unité en stock pour ces filtres.</p>
-                ) : (
-                    <ul className="divide-y divide-slate-100 text-sm">
-                        {synthese.map((s) => (
-                            <li key={s.reference} className="flex justify-between gap-3 py-1.5">
-                                <span>
-                                    <span className="font-medium">{s.reference}</span> <span className="text-slate-500">{s.nom}</span>
-                                </span>
-                                <span className="font-medium tabular-nums">{s.quantite}</span>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </Carte>
-            <div className="space-y-4 lg:col-span-2">
-                {choisies.length > 0 && (
-                    <Carte titre={`Étiquettes de ${choisies.length} élément(s) sélectionné(s)`}>
-                        <PanneauImpression
-                            cibles={choisies.map((u) => ({ type: 'unite', id: u.id }))}
-                            imprimantes={imprimantes}
-                            dejaImprime={choisies.some((u) => u.impressions > 0)}
-                            libelle={`Imprimer ${choisies.length} étiquette(s)`}
-                        />
-                    </Carte>
-                )}
-                <Carte>
-                    <Tableau
-                        colonnes={[{ libelle: '' }, { libelle: 'Article' }, { libelle: 'N° de série / lot' }, { libelle: 'Reste', droite: true }, { libelle: 'Emplacement' }, { libelle: 'Statut' }]}
-                        vide={unites.data.length === 0 ? 'Aucune unité ne correspond.' : null}
-                    >
-                        <tr className="bg-slate-50">
-                            <td className="px-5 py-1.5" colSpan={6}>
-                                <label className="flex items-center gap-2 text-xs text-slate-600">
-                                    <input type="checkbox" checked={selection.length > 0 && selection.length === tous.length} onChange={(e) => setSelection(e.target.checked ? tous : [])} />
-                                    Tout sélectionner sur cette page (pour imprimer les étiquettes)
-                                </label>
-                            </td>
-                        </tr>
-                        {unites.data.map((u) => (
-                            <tr key={u.id} className={classes('hover:bg-slate-50', selection.includes(u.id) && 'bg-green-50/60')}>
-                                <td className="px-5 py-2">
-                                    <input type="checkbox" checked={selection.includes(u.id)} onChange={() => basculer(u.id)} aria-label={`Sélectionner ${u.uid}`} />
-                                </td>
-                                <td className="px-5 py-2">
-                                    <Link href={`/stock/${u.id}`} className="font-medium text-green-800 hover:underline">
-                                        {u.reference}
-                                    </Link>{' '}
-                                    <span className="text-slate-500">{u.nom}</span>
-                                </td>
-                                <td className="px-5 py-2">{u.numero_serie ?? <span className="text-slate-600">Lot</span>}</td>
-                                <td className="px-5 py-2 text-right tabular-nums">
-                                    {u.quantite_restante}/{u.quantite_initiale}
-                                </td>
-                                <td className="px-5 py-2 text-slate-600">
-                                    {u.emplacement_libelle || '—'} <Pastille>{u.proprietaire}</Pastille>
-                                </td>
-                                <td className="px-5 py-2">
-                                    <div className="flex flex-wrap gap-1">
-                                        <Statut valeur={u.statut} />
-                                        {u.etat === 'defectueux' && <EtatPastille etat="defectueux" />}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </Tableau>
-                    <Pagination liens={unites.links} />
+        <div className="space-y-4">
+            {choisies.length > 0 && (
+                <Carte titre={`Étiquettes : ${choisies.length} élément(s) sélectionné(s)`} actions={<Bouton variante="discret" onClick={() => setSelection([])}>Désélectionner</Bouton>}>
+                    <PanneauImpression
+                        cibles={choisies.map((u) => ({ type: 'unite', id: u.id }))}
+                        imprimantes={imprimantes}
+                        dejaImprime={choisies.some((u) => u.impressions > 0)}
+                        libelle={`Imprimer ${choisies.length} étiquette(s)`}
+                    />
                 </Carte>
-            </div>
+            )}
+            <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                        <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-600">
+                            <tr>
+                                <th className="w-10 px-4 py-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={tous.length > 0 && selection.length === tous.length}
+                                        onChange={(e) => setSelection(e.target.checked ? tous : [])}
+                                        aria-label="Tout sélectionner sur cette page"
+                                        title="Tout sélectionner (impression d’étiquettes)"
+                                    />
+                                </th>
+                                <th className="px-3 py-2 font-medium">Article</th>
+                                <th className="px-3 py-2 font-medium">N° de série / lot</th>
+                                <th className="px-3 py-2 text-right font-medium">Qté</th>
+                                <th className="px-3 py-2 font-medium">Emplacement</th>
+                                <th className="px-3 py-2 font-medium">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {unites.data.map((u) => (
+                                <tr key={u.id} className={classes('whitespace-nowrap hover:bg-slate-50', selection.includes(u.id) && 'bg-green-50/60')}>
+                                    <td className="px-4 py-1.5">
+                                        <input type="checkbox" checked={selection.includes(u.id)} onChange={() => basculer(u.id)} aria-label={`Sélectionner ${u.uid}`} />
+                                    </td>
+                                    <td className="max-w-72 truncate px-3 py-1.5" title={u.nom}>
+                                        <Link href={`/stock/${u.id}`} className="font-medium text-green-800 hover:underline">
+                                            {u.reference}
+                                        </Link>{' '}
+                                        <span className="text-slate-500">{u.nom}</span>
+                                    </td>
+                                    <td className="px-3 py-1.5 font-mono text-xs">{u.numero_serie ?? <span className="font-sans text-slate-500">Lot</span>}</td>
+                                    <td className="px-3 py-1.5 text-right tabular-nums">{u.nature === 'lot' ? `${u.quantite_restante}/${u.quantite_initiale}` : 1}</td>
+                                    <td className="max-w-80 truncate px-3 py-1.5 text-slate-600" title={u.emplacement_libelle}>
+                                        {unSite ? (u.emplacement_libelle ?? '').split(' › ').pop() || '—' : u.emplacement_libelle || '—'}
+                                        <span className="ml-1.5 text-xs text-slate-400">{u.proprietaire}</span>
+                                    </td>
+                                    <td className="px-3 py-1.5">
+                                        <span className="inline-flex gap-1">
+                                            <Statut valeur={u.statut} />
+                                            {u.etat === 'defectueux' && <Pastille couleur="rouge">Défectueux</Pastille>}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {unites.data.length === 0 && <p className="px-5 py-8 text-center text-sm text-slate-500">Aucune unité ne correspond.</p>}
+                </div>
+                <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
+                    <span>{unites.total} unité(s)</span>
+                    <Pagination liens={unites.links} />
+                </div>
+            </section>
         </div>
     );
 }
 
+function VueArticles({ synthese }) {
+    const total = synthese.reduce((s, a) => s + Number(a.quantite), 0);
+    return (
+        <Carte actions={<span className="text-sm text-slate-600">{total} unité(s) en stock</span>}>
+            <Tableau colonnes={[{ libelle: 'Article' }, { libelle: 'Désignation' }, { libelle: 'Disponible', droite: true }]} vide={synthese.length === 0 ? 'Aucune unité en stock pour ces filtres.' : null}>
+                {synthese.map((a) => (
+                    <tr key={a.reference} className="hover:bg-slate-50">
+                        <td className="px-5 py-1.5 font-medium">
+                            <Link href={`/stock?q=${encodeURIComponent(a.reference)}`} className="text-green-800 hover:underline">
+                                {a.reference}
+                            </Link>
+                        </td>
+                        <td className="px-5 py-1.5 text-slate-600">{a.nom}</td>
+                        <td className="px-5 py-1.5 text-right font-medium tabular-nums">{a.quantite}</td>
+                    </tr>
+                ))}
+            </Tableau>
+        </Carte>
+    );
+}
+
 function VueSites({ parSite }) {
-    if (parSite.length === 0) {
+    if (!parSite?.length) {
         return <Carte>Aucun site actif.</Carte>;
     }
     return (
         <div className="space-y-6">
             {parSite.map((site) => (
-                <Carte
-                    key={site.site_id}
-                    titre={site.site}
-                    actions={
-                        <span className="text-sm text-slate-600">
-                            {site.total_articles} article(s) · {site.total_kits} kit(s)
-                        </span>
-                    }
-                >
+                <Carte key={site.site_id} titre={site.site} actions={<span className="text-sm text-slate-600">{site.total_articles} article(s) · {site.total_kits} kit(s)</span>}>
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {site.emplacements.map((e) => {
                             const vide = e.articles.length === 0 && e.kits.length === 0;
@@ -230,17 +252,14 @@ function VueSites({ parSite }) {
 }
 
 export default function Index({ unites, filtres, synthese, sites, emplacements, imprimantes, parSite, vue }) {
-    const changerVue = (v) => router.get('/stock', { ...filtres, vue: v === 'sites' ? 'sites' : undefined, page: undefined }, { preserveState: false });
+    const changerVue = (v) => router.get('/stock', { ...filtres, vue: v === 'liste' ? undefined : v, page: undefined }, { preserveState: false });
 
     return (
         <AppLayout
             titre="Stock"
             actions={
                 <div className="inline-flex rounded-md ring-1 ring-slate-300" role="tablist" aria-label="Affichage du stock">
-                    {[
-                        ['liste', 'Liste détaillée'],
-                        ['sites', 'Par site'],
-                    ].map(([v, l]) => (
+                    {vues.map(([v, l]) => (
                         <button
                             key={v}
                             type="button"
@@ -256,7 +275,9 @@ export default function Index({ unites, filtres, synthese, sites, emplacements, 
             }
         >
             <Filtres filtres={filtres} sites={sites} emplacements={emplacements} vue={vue} />
-            {vue === 'sites' ? <VueSites parSite={parSite} /> : <VueListe unites={unites} synthese={synthese} imprimantes={imprimantes} />}
+            {vue === 'sites' && <VueSites parSite={parSite} />}
+            {vue === 'articles' && <VueArticles synthese={synthese} />}
+            {vue === 'liste' && <VueListe unites={unites} imprimantes={imprimantes} unSite={Boolean(filtres.site) || sites.length === 1} />}
         </AppLayout>
     );
 }

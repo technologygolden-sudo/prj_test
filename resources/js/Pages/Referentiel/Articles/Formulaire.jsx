@@ -1,7 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AppLayout from '../../../Layouts/AppLayout';
-import { Bouton, Carte, Champ, Liste, Saisie } from '../../../Components/ui';
+import { Bouton, Carte, Champ, Liste, Saisie, Suggestions } from '../../../Components/ui';
 
 export default function Formulaire({ article, categories, fabricants, tousArticles }) {
     const creation = article === null;
@@ -13,12 +13,13 @@ export default function Formulaire({ article, categories, fabricants, tousArticl
         categorie_id: article?.categorie_id ?? '',
         fabricant_id: article?.fabricant_id ?? '',
         associes: article?.associes ?? [],
+        cout_unitaire: article?.cout_unitaire ?? '',
     });
     const [ajout, setAjout] = useState('');
 
     const envoyer = (e) => {
         e.preventDefault();
-        transform((d) => ({ ...d, categorie_id: d.categorie_id || null, fabricant_id: d.fabricant_id || null, type: d.type || null }));
+        transform((d) => ({ ...d, categorie_id: d.categorie_id || null, fabricant_id: d.fabricant_id || null, type: d.type || null, cout_unitaire: d.cout_unitaire === '' ? null : d.cout_unitaire }));
         if (creation) {
             post('/articles');
         } else {
@@ -63,8 +64,12 @@ export default function Formulaire({ article, categories, fabricants, tousArticl
                                 ))}
                             </Liste>
                         </Champ>
-                        <Champ libelle="Type" htmlFor="type" erreur={errors.type} aide="Valeurs encore à définir (dossier v2, section 2.1).">
-                            <Saisie id="type" value={data.type ?? ''} onChange={(e) => setData('type', e.target.value)} />
+                        <Champ libelle="Type" htmlFor="type" erreur={errors.type} aide="Valeurs gérées dans Référentiel › Listes de valeurs.">
+                            <Saisie id="type" list="liste-type_article" value={data.type ?? ''} onChange={(e) => setData('type', e.target.value)} />
+                            <Suggestions liste="type_article" />
+                        </Champ>
+                        <Champ libelle="Coût unitaire (FCFA)" htmlFor="cout_unitaire" erreur={errors.cout_unitaire} aide="Sert à valoriser les écarts d’inventaire.">
+                            <Saisie id="cout_unitaire" type="number" min={0} step="1" value={data.cout_unitaire ?? ''} onChange={(e) => setData('cout_unitaire', e.target.value)} />
                         </Champ>
                         <Champ libelle="Suivi" erreur={errors.est_serialise}>
                             <label className="mt-2 flex items-center gap-2 text-sm text-slate-700">

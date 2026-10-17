@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Bouton, Carte, Champ, Liste, Pastille, Saisie, Tableau, dateFr, usePeut } from './ui';
+import { Bouton, Carte, Champ, Liste, Pastille, Saisie, Suggestions, Tableau, dateFr, usePeut } from './ui';
 
 const typesDeplacement = { affectation: 'Rangement', deplacement: 'Déplacement', envoi: 'Envoi (transfert)', reception: 'Réception (transfert)', cession: 'Cession' };
 const typesDeclaration = { defaut: 'Défaut (SAV)', reparation: 'Réparation (Lab)', reconditionnement: 'Reconditionnement (Lab)' };
@@ -101,7 +101,7 @@ export default function ActionsElement({ type, element, emplacement, emplacement
                                             </Champ>
                                         )}
                                         <Champ libelle="Motif" erreur={errors.motif} className="min-w-64 flex-1">
-                                            <Saisie value={data.motif} onChange={(e) => setData('motif', e.target.value)} placeholder="Mise à disposition QA/QC, réassort du shop…" />
+                                            <Saisie list="liste-motif_deplacement" value={data.motif} onChange={(e) => setData('motif', e.target.value)} placeholder="Mise à disposition QA/QC, réassort du shop…" />
                                         </Champ>
                                     </>
                                 )}
@@ -155,7 +155,7 @@ export default function ActionsElement({ type, element, emplacement, emplacement
                                             </Liste>
                                         </Champ>
                                         <Champ libelle="Description du défaut" erreur={errors.description} className="min-w-64 flex-1">
-                                            <Saisie value={data.description} onChange={(e) => setData('description', e.target.value)} placeholder="Ne charge plus, écran fissuré…" />
+                                            <Saisie list="liste-motif_defaut" value={data.description} onChange={(e) => setData('description', e.target.value)} placeholder="Ne charge plus, écran fissuré…" />
                                         </Champ>
                                     </>
                                 )}
@@ -187,6 +187,8 @@ export default function ActionsElement({ type, element, emplacement, emplacement
                 )}
             </Carte>
 
+            <Suggestions liste="motif_deplacement" />
+            <Suggestions liste="motif_defaut" />
             <Carte titre="Historique des emplacements">
                 <Tableau colonnes={[{ libelle: 'Date' }, { libelle: 'Mouvement' }, { libelle: 'De' }, { libelle: 'Vers' }, { libelle: 'Motif' }, { libelle: 'Par' }]} vide={historique.deplacements.length === 0 ? 'Aucun mouvement.' : null}>
                     {historique.deplacements.map((m) => (

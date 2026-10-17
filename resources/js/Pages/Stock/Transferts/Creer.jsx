@@ -4,7 +4,7 @@ import AppLayout from '../../../Layouts/AppLayout';
 import { postJson } from '../../../Components/http';
 import { signal } from '../../../Components/signal';
 import { EtatPastille } from '../../../Components/ActionsElement';
-import { Bouton, Carte, Champ, Liste, Pastille, Saisie, Tableau, classes } from '../../../Components/ui';
+import { Bouton, Carte, Champ, Liste, Pastille, Saisie, Suggestions, Tableau, classes } from '../../../Components/ui';
 
 /**
  * Transfert en deux étapes (RG34) :
@@ -138,7 +138,8 @@ export default function Creer({ sites, siteImpose }) {
                             </Liste>
                         </Champ>
                         <Champ libelle="Motif" erreur={errors.motif}>
-                            <Saisie value={data.motif} onChange={(e) => setData('motif', e.target.value)} placeholder="Réassort du shop, retour SAV vers le Lab…" />
+                            <Saisie list="liste-motif_deplacement" value={data.motif} onChange={(e) => setData('motif', e.target.value)} placeholder="Réassort du shop, retour SAV vers le Lab…" />
+                            <Suggestions liste="motif_deplacement" />
                         </Champ>
                     </div>
                 </Carte>

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Table('type_kit')]
-#[Fillable(['reference', 'partno', 'nom', 'categorie_id', 'fabricant_id'])]
+#[Fillable(['reference', 'partno', 'nom', 'categorie_id', 'fabricant_id', 'cout_unitaire'])]
 class TypeKit extends Model
 {
     public function categorie(): BelongsTo

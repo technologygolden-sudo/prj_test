@@ -89,7 +89,7 @@ class TypeKitController extends Controller
         $active = $kit->versionActive()->value('id');
 
         return Inertia::render('Referentiel/Kits/Fiche', $this->listes() + [
-            'kit' => $kit->only(['id', 'reference', 'partno', 'nom', 'categorie_id', 'fabricant_id']) + [
+            'kit' => $kit->only(['id', 'reference', 'partno', 'nom', 'categorie_id', 'fabricant_id', 'cout_unitaire']) + [
                 'categorie' => $kit->categorie?->libelle,
                 'fabricant' => $kit->fabricant?->nom,
             ],
@@ -151,6 +151,7 @@ class TypeKitController extends Controller
             'nom' => ['required', 'string', 'max:255'],
             'categorie_id' => ['nullable', 'integer', Rule::exists('categorie', 'id')],
             'fabricant_id' => ['nullable', 'integer', Rule::exists('fabricant', 'id')],
+            'cout_unitaire' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
         ];
     }
 

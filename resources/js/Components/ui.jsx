@@ -58,6 +58,18 @@ export function Saisie({ className, invalide, ...props }) {
     return <input className={classes(saisie, invalide && 'ring-red-400', className)} {...props} />;
 }
 
+/** Suggestions d'un champ texte, tirées des listes de valeurs du référentiel : <Saisie list="liste-motif_defaut" /> + <Suggestions liste="motif_defaut" />. */
+export function Suggestions({ liste }) {
+    const { listes } = usePage().props;
+    return (
+        <datalist id={`liste-${liste}`}>
+            {(listes?.[liste] ?? []).map((v) => (
+                <option key={v} value={v} />
+            ))}
+        </datalist>
+    );
+}
+
 export function Liste({ className, invalide, children, ...props }) {
     return (
         <select className={classes(saisie, 'pr-8', invalide && 'ring-red-400', className)} {...props}>

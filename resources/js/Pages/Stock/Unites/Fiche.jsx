@@ -3,7 +3,7 @@ import AppLayout from '../../../Layouts/AppLayout';
 import PanneauImpression from '../../../Components/PanneauImpression';
 import { Impressions, Mouvements } from '../../../Components/Historique';
 import ActionsElement from '../../../Components/ActionsElement';
-import { Bouton, Carte, Champ, Saisie, Statut, dateFr, usePeut } from '../../../Components/ui';
+import { Bouton, Carte, Champ, Saisie, Statut, Suggestions, dateFr, usePeut } from '../../../Components/ui';
 
 function Ajustement({ unite }) {
     const serie = unite.nature === 'serie';
@@ -27,7 +27,8 @@ function Ajustement({ unite }) {
                 </Champ>
             )}
             <Champ libelle="Motif" erreur={errors.motif ?? (serie ? errors.quantite : null)} className="min-w-64 flex-1">
-                <Saisie value={data.motif} onChange={(e) => setData('motif', e.target.value)} placeholder="Constat d’inventaire du…" />
+                <Saisie list="liste-motif_ajustement" value={data.motif} onChange={(e) => setData('motif', e.target.value)} placeholder="Constat d’inventaire du…" />
+                <Suggestions liste="motif_ajustement" />
             </Champ>
             <Bouton type="submit" variante={serie && unite.statut === 'en_stock' ? 'danger' : 'primaire'} disabled={processing}>
                 {serie ? (unite.statut === 'perdu' ? 'Déclarer retrouvée' : 'Déclarer perdue') : 'Ajuster'}

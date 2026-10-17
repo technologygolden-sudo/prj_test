@@ -71,7 +71,7 @@ class ArticleController extends Controller
         $article->load('associes:id');
 
         return Inertia::render('Referentiel/Articles/Formulaire', $this->listes() + [
-            'article' => $article->only(['id', 'reference', 'nom', 'type', 'est_serialise', 'categorie_id', 'fabricant_id'])
+            'article' => $article->only(['id', 'reference', 'nom', 'type', 'est_serialise', 'categorie_id', 'fabricant_id', 'cout_unitaire'])
                 + ['associes' => $article->associes->pluck('id')],
         ]);
     }
@@ -128,6 +128,7 @@ class ArticleController extends Controller
             'categorie_id' => ['nullable', 'integer', Rule::exists('categorie', 'id')],
             // RG07 : le n° de série est unique par fabricant, un article sérialisé a donc un fabricant.
             'fabricant_id' => ['nullable', 'required_if_accepted:est_serialise', 'integer', Rule::exists('fabricant', 'id')],
+            'cout_unitaire' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
             'associes' => ['nullable', 'array'],
             'associes.*' => ['integer', 'distinct', Rule::exists('article', 'id'), Rule::notIn([$article?->id])],
         ], [

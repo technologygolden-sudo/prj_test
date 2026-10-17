@@ -2,7 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AppLayout from '../../../Layouts/AppLayout';
 import { postJson } from '../../../Components/http';
-import { Bouton, Carte, Champ, Liste, Pastille, Saisie, Tableau } from '../../../Components/ui';
+import { Bouton, Carte, Champ, Liste, Pastille, Saisie, Suggestions, Tableau } from '../../../Components/ui';
 
 export default function Creer() {
     const { data, setData, post, processing, errors } = useForm({ type: 'expedition', destinataire: '', document: '', lignes: [] });
@@ -50,7 +50,8 @@ export default function Creer() {
                             </Liste>
                         </Champ>
                         <Champ libelle={data.type === 'expedition' ? 'Technicien' : 'Destinataire'} erreur={errors.destinataire}>
-                            <Saisie value={data.destinataire} onChange={(e) => setData('destinataire', e.target.value)} placeholder={data.type === 'expedition' ? 'Nom du technicien' : 'Facultatif'} />
+                            <Suggestions liste="technicien" />
+                            <Saisie list={data.type === 'expedition' ? 'liste-technicien' : undefined} value={data.destinataire} onChange={(e) => setData('destinataire', e.target.value)} placeholder={data.type === 'expedition' ? 'Nom du technicien' : 'Facultatif'} />
                         </Champ>
                         <Champ libelle={data.type === 'expedition' ? 'N° de commande CRM' : 'Document'} erreur={errors.document}>
                             <Saisie value={data.document} onChange={(e) => setData('document', e.target.value)} placeholder="Bon de sortie, n° de commande…" />

@@ -68,6 +68,9 @@ class Perimetre
     public static function peutRecevoir(int $siteDestination, ?User $user = null): bool
     {
         $user ??= auth()->user();
+        if ($user?->hasRole(\Database\Seeders\PermissionSeeder::ADMINISTRATEUR)) {
+            return true; // l'administrateur peut réceptionner tous les transferts
+        }
         $siteUser = $user?->getAttributes()['site_id'] ?? null;
         $destinationEntrepot = DB::table('site')->where('id', $siteDestination)->value('type') === 'entrepot';
 

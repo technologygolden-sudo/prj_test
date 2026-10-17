@@ -59,7 +59,7 @@ class UniteController extends Controller
         return Inertia::render('Stock/Unites/Index', [
             'unites' => $unites, 'filtres' => $filtres, 'synthese' => $synthese,
             'parSite' => $request->query('vue') === 'sites' ? $this->parSite($filtres) : null,
-            'vue' => $request->query('vue') === 'sites' ? 'sites' : 'liste',
+            'vue' => in_array($request->query('vue'), ['sites', 'articles'], true) ? $request->query('vue') : 'liste',
             'sites' => DB::table('site')->where('actif', true)->when(Perimetre::site(), fn ($q, $s) => $q->where('id', $s))->orderByRaw("type = 'entrepot' desc")->orderBy('nom')->get(['id', 'nom']),
             'emplacements' => Emplacements::liste($filtres['site'] ?? null),
             'imprimantes' => ReceptionController::imprimantes(),

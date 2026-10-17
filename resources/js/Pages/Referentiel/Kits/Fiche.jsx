@@ -14,6 +14,7 @@ function InfosKit({ kit, categories, fabricants }) {
         nom: kit.nom,
         categorie_id: kit.categorie_id ?? '',
         fabricant_id: kit.fabricant_id ?? '',
+        cout_unitaire: kit.cout_unitaire ?? '',
     });
 
     if (edition) {
@@ -23,7 +24,7 @@ function InfosKit({ kit, categories, fabricants }) {
                     className="space-y-4"
                     onSubmit={(e) => {
                         e.preventDefault();
-                        transform((d) => ({ ...d, categorie_id: d.categorie_id || null, fabricant_id: d.fabricant_id || null }));
+                        transform((d) => ({ ...d, categorie_id: d.categorie_id || null, fabricant_id: d.fabricant_id || null, cout_unitaire: d.cout_unitaire === '' ? null : d.cout_unitaire }));
                         put(`/kits/${kit.id}`, { preserveScroll: true, onSuccess: () => setEdition(false) });
                     }}
                 >
@@ -43,12 +44,13 @@ function InfosKit({ kit, categories, fabricants }) {
 
     return (
         <Carte titre="Type de kit" actions={peut('kits.gerer') && <Bouton variante="secondaire" onClick={() => setEdition(true)}>Modifier</Bouton>}>
-            <dl className="grid gap-4 text-sm sm:grid-cols-4">
+            <dl className="grid gap-4 text-sm sm:grid-cols-5">
                 {[
                     ['Référence CRM', kit.reference],
                     ['PartNo', kit.partno],
                     ['Catégorie', kit.categorie ?? '—'],
                     ['Fabricant', kit.fabricant ?? '—'],
+                    ['Coût unitaire', kit.cout_unitaire ? `${Number(kit.cout_unitaire).toLocaleString('fr-FR')} FCFA` : 'Somme des articles'],
                 ].map(([libelle, valeur]) => (
                     <div key={libelle}>
                         <dt className="text-slate-500">{libelle}</dt>

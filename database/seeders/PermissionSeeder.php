@@ -27,6 +27,9 @@ class PermissionSeeder extends Seeder
         'stock.ceder' => ['stock', 'Céder du stock entre GREENO et TEVIA', true],
         'transferts.envoyer' => ['stock', 'Envoyer un transfert vers un autre site', false],
         'transferts.recevoir' => ['stock', 'Valider la réception d’un transfert', false],
+        'inventaire.compter' => ['inventaire', 'Compter lors d’un inventaire', false],
+        'inventaire.gerer' => ['inventaire', 'Créer et piloter les campagnes d’inventaire', false],
+        'inventaire.cloturer' => ['inventaire', 'Clôturer un inventaire et ajuster le stock', true],
         'sav.declarer' => ['sav', 'Déclarer un défaut (SAV)', false],
         'lab.reparer' => ['sav', 'Déclarer une réparation ou un reconditionnement (Lab)', false],
         'assemblage.realiser' => ['stock', 'Assembler un kit', false],
@@ -52,7 +55,7 @@ class PermissionSeeder extends Seeder
             'recherche.scanner', 'capacite.consulter',
         ],
         'Réceptionnaire' => [
-            'articles.voir', 'reception.creer', 'stock.sortir', 'stock.deplacer',
+            'articles.voir', 'reception.creer', 'stock.sortir', 'stock.deplacer', 'inventaire.compter',
             'transferts.envoyer', 'transferts.recevoir',
             'etiquettes.imprimer', 'etiquettes.reimprimer', 'recherche.scanner',
         ],
@@ -67,6 +70,11 @@ class PermissionSeeder extends Seeder
         'Shop manager' => [
             'articles.voir', 'recherche.scanner', 'stock.deplacer', 'stock.sortir', 'sav.declarer',
             'transferts.envoyer', 'transferts.recevoir', 'etiquettes.imprimer', 'etiquettes.reimprimer',
+            'inventaire.compter',
+        ],
+        'Contrôleur de gestion' => [
+            'articles.voir', 'recherche.scanner', 'capacite.consulter', 'audit.consulter',
+            'inventaire.compter', 'inventaire.gerer', 'inventaire.cloturer',
         ],
         'Assembleur' => [
             'articles.voir', 'assemblage.realiser', 'assemblage.annuler',
